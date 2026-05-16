@@ -93,7 +93,7 @@ export default function WaiverBuilder() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Bungy Jump Liability Waiver"
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
           />
         </div>
         <div>
@@ -102,7 +102,7 @@ export default function WaiverBuilder() {
             value={bodyText}
             onChange={(e) => setBodyText(e.target.value)}
             rows={5}
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-sm"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent resize-none text-sm"
           />
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function WaiverBuilder() {
           <h2 className="text-sm font-semibold text-zinc-300">Guest fields</h2>
           <button
             onClick={addField}
-            className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300 transition"
+            className="flex items-center gap-1.5 text-xs text-arb-blue-light hover:text-arb-teal transition"
           >
             <Plus size={14} />
             Add field
@@ -132,7 +132,7 @@ export default function WaiverBuilder() {
                   <input
                     value={field.label}
                     onChange={(e) => updateField(field.id, { label: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
                   />
                 </div>
                 <div>
@@ -140,7 +140,7 @@ export default function WaiverBuilder() {
                   <select
                     value={field.type}
                     onChange={(e) => updateField(field.id, { type: e.target.value as FieldType })}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
                   >
                     {FIELD_TYPES.map((t) => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -154,7 +154,7 @@ export default function WaiverBuilder() {
                       value={field.options ?? ""}
                       onChange={(e) => updateField(field.id, { options: e.target.value })}
                       placeholder="Option A, Option B, Option C"
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
                     />
                   </div>
                 )}
@@ -165,7 +165,7 @@ export default function WaiverBuilder() {
                       value={field.followUpLabel ?? ""}
                       onChange={(e) => updateField(field.id, { followUpLabel: e.target.value })}
                       placeholder="e.g. Please describe your medical condition"
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
                     />
                   </div>
                 )}
@@ -174,7 +174,7 @@ export default function WaiverBuilder() {
                     type="checkbox"
                     checked={field.required}
                     onChange={(e) => updateField(field.id, { required: e.target.checked })}
-                    className="accent-orange-500"
+                    className="accent-arb-blue"
                     id={`req-${field.id}`}
                   />
                   <label htmlFor={`req-${field.id}`} className="text-xs text-zinc-400">Required</label>
@@ -196,7 +196,7 @@ export default function WaiverBuilder() {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-semibold transition disabled:opacity-50"
+        className="w-full py-3 rounded-xl bg-arb-blue hover:bg-arb-blue-light text-white font-semibold transition disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save waiver"}
       </button>

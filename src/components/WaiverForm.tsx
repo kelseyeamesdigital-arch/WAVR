@@ -22,6 +22,9 @@ type Waiver = {
   operator_id: string;
 };
 
+const inputClass = "w-full px-4 py-2.5 rounded-lg bg-white border border-gray-300 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent text-sm";
+const labelClass = "block text-sm font-semibold text-gray-700 mb-1";
+
 export default function WaiverForm({ waiver }: { waiver: Waiver }) {
   const sigRef = useRef<SignatureCanvas>(null);
   const [values, setValues] = useState<Record<string, string>>({});
@@ -54,10 +57,8 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
     setSubmitting(true);
     const supabase = createClient();
 
-    // Save signature as data URL (stored as text — no file upload needed for MVP)
     const signatureDataUrl = sigRef.current!.toDataURL("image/png");
 
-    // Map well-known fields to dedicated columns
     const guestName = values["name"] ?? values[waiver.fields.find((f) => f.type === "text" && f.label.toLowerCase().includes("name"))?.id ?? ""] ?? "";
     const guestEmail = values["email"] ?? values[waiver.fields.find((f) => f.type === "email")?.id ?? ""] ?? null;
     const guestAge = values["age"] ?? values[waiver.fields.find((f) => f.type === "number" && f.label.toLowerCase().includes("age"))?.id ?? ""] ?? null;
@@ -85,9 +86,11 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
   if (submitted) {
     return (
       <div className="text-center py-16">
-        <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
-        <h2 className="text-xl font-bold text-white mb-2">You&apos;re all signed in!</h2>
-        <p className="text-zinc-400 text-sm">Your waiver has been submitted. Enjoy your adventure!</p>
+        <CheckCircle size={52} className="text-arb-teal mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-arb-green mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+          YOU&apos;RE ALL SET!
+        </h2>
+        <p className="text-gray-500 text-sm">Your waiver has been submitted. Enjoy your adventure with us!</p>
       </div>
     );
   }
@@ -95,17 +98,19 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* Waiver text */}
-      <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-5">
-        <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-wrap">{waiver.body_text}</p>
+      <div className="bg-gray-50 rounded-xl border border-gray-200 p-5">
+        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{waiver.body_text}</p>
       </div>
 
       {/* Dynamic fields */}
       {waiver.fields.map((field) => (
         <div key={field.id}>
-          <label className="block text-sm font-medium text-zinc-300 mb-1">
-            {field.label}
-            {field.required && <span className="text-orange-400 ml-1">*</span>}
-          </label>
+          {field.type !== "checkbox" && (
+            <label className={labelClass}>
+              {field.label}
+              {field.required && <span className="text-arb-blue ml-1">*</span>}
+            </label>
+          )}
 
           {field.type === "conditional" ? (
             <div className="space-y-3">
@@ -115,10 +120,10 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
                     key={opt}
                     type="button"
                     onClick={() => setValue(field.id, opt)}
-                    className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition ${
+                    className={`flex-1 py-2.5 rounded-lg border text-sm font-semibold transition ${
                       values[field.id] === opt
-                        ? "bg-orange-500 border-orange-500 text-white"
-                        : "bg-zinc-900 border-zinc-700 text-zinc-300 hover:border-zinc-500"
+                        ? "bg-arb-blue border-arb-blue text-white"
+                        : "bg-white border-gray-300 text-gray-700 hover:border-arb-blue"
                     }`}
                   >
                     {opt}
@@ -127,16 +132,16 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
               </div>
               {values[field.id] === "Yes" && field.followUpLabel && (
                 <div>
-                  <label className="block text-sm font-medium text-zinc-300 mb-1">
+                  <label className={labelClass}>
                     {field.followUpLabel}
-                    {field.required && <span className="text-orange-400 ml-1">*</span>}
+                    {field.required && <span className="text-arb-blue ml-1">*</span>}
                   </label>
                   <textarea
                     required={field.required}
                     value={values[`${field.id}_followup`] ?? ""}
                     onChange={(e) => setValue(`${field.id}_followup`, e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none text-sm"
+                    className={`${inputClass} resize-none`}
                   />
                 </div>
               )}
@@ -149,7 +154,7 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
               required={field.required}
               value={values[field.id] ?? ""}
               onChange={(e) => setValue(field.id, e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className={inputClass}
             >
               <option value="">Select…</option>
               {(field.options ?? "").split(",").map((opt) => (
@@ -157,16 +162,16 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
               ))}
             </select>
           ) : field.type === "checkbox" ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-start gap-3 bg-gray-50 rounded-xl border border-gray-200 p-4">
               <input
                 type="checkbox"
                 required={field.required}
                 checked={values[field.id] === "true"}
                 onChange={(e) => setValue(field.id, e.target.checked ? "true" : "false")}
-                className="accent-orange-500 w-4 h-4"
+                className="accent-arb-blue w-4 h-4 mt-0.5 shrink-0"
                 id={`field-${field.id}`}
               />
-              <label htmlFor={`field-${field.id}`} className="text-sm text-zinc-400">{field.label}</label>
+              <label htmlFor={`field-${field.id}`} className="text-sm text-gray-700">{field.label}</label>
             </div>
           ) : (
             <input
@@ -174,22 +179,22 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
               required={field.required}
               value={values[field.id] ?? ""}
               onChange={(e) => setValue(field.id, e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className={inputClass}
             />
           )}
         </div>
       ))}
 
       {/* Agreement */}
-      <div className="flex items-start gap-3 bg-zinc-900 rounded-xl border border-zinc-700 p-4">
+      <div className="flex items-start gap-3 bg-arb-blue/5 rounded-xl border border-arb-blue/20 p-4">
         <input
           type="checkbox"
           id="agree"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
-          className="accent-orange-500 w-4 h-4 mt-0.5 shrink-0"
+          className="accent-arb-blue w-4 h-4 mt-0.5 shrink-0"
         />
-        <label htmlFor="agree" className="text-sm text-zinc-300">
+        <label htmlFor="agree" className="text-sm text-gray-700 leading-relaxed">
           I have read and agree to the above waiver. I understand the risks involved and voluntarily participate.
         </label>
       </div>
@@ -197,37 +202,40 @@ export default function WaiverForm({ waiver }: { waiver: Waiver }) {
       {/* Signature */}
       <div>
         <div className="flex items-center justify-between mb-1">
-          <label className="text-sm font-medium text-zinc-300">
-            Signature <span className="text-orange-400">*</span>
+          <label className={labelClass}>
+            Signature <span className="text-arb-blue">*</span>
           </label>
           <button
             type="button"
             onClick={clearSig}
-            className="flex items-center gap-1 text-xs text-zinc-500 hover:text-white transition"
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition"
           >
             <RotateCcw size={12} />
             Clear
           </button>
         </div>
-        <div className="rounded-xl border border-zinc-700 overflow-hidden bg-white">
+        <div className="rounded-xl border-2 border-gray-300 overflow-hidden bg-white">
           <SignatureCanvas
             ref={sigRef}
-            penColor="#111"
-            canvasProps={{ className: "w-full h-36 touch-none", style: { width: "100%", height: 144 } }}
+            penColor="#1a1a1a"
+            canvasProps={{ className: "w-full h-40 touch-none", style: { width: "100%", height: 160 } }}
           />
         </div>
-        <p className="text-xs text-zinc-500 mt-1">Draw your signature above</p>
+        <p className="text-xs text-gray-400 mt-1">Sign with your finger or mouse above</p>
       </div>
 
-      {error && <p className="text-red-400 text-sm">{error}</p>}
+      {error && <p className="text-red-500 text-sm">{error}</p>}
 
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-3 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-semibold transition disabled:opacity-50"
+        className="w-full py-3 rounded-xl font-bold text-white transition disabled:opacity-50"
+        style={{ backgroundColor: "#1E9FD4", fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em", fontSize: "1rem" }}
       >
-        {submitting ? "Submitting…" : "Sign & submit"}
+        {submitting ? "SUBMITTING…" : "SIGN & SUBMIT"}
       </button>
+
+      <p className="text-center text-xs text-gray-400 pb-4">Adventure Rafting Bled · adventure-rafting.com</p>
     </form>
   );
 }

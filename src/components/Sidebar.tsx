@@ -28,8 +28,16 @@ export default function Sidebar({ user }: { user: User }) {
   return (
     <aside className="w-56 flex flex-col bg-zinc-950 border-r border-zinc-800 shrink-0">
       <div className="px-5 py-5 border-b border-zinc-800">
-        <span className="text-xl font-bold text-orange-500 tracking-tight">WAVR</span>
-        <p className="text-xs text-zinc-500 mt-1 truncate">{businessName}</p>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-7 h-7 rounded bg-arb-blue flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-xs" style={{ fontFamily: "Oswald, sans-serif" }}>ARB</span>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-white leading-tight" style={{ fontFamily: "Oswald, sans-serif" }}>ADVENTURE RAFTING</p>
+            <p className="text-[10px] text-arb-teal leading-tight tracking-widest">BLED</p>
+          </div>
+        </div>
+        <p className="text-xs text-zinc-500 mt-2 truncate">{businessName}</p>
       </div>
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map(({ href, label, icon: Icon }) => {
@@ -40,7 +48,7 @@ export default function Sidebar({ user }: { user: User }) {
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                 active
-                  ? "bg-orange-500/10 text-orange-400"
+                  ? "bg-arb-blue/10 text-arb-blue-light"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-800"
               }`}
             >

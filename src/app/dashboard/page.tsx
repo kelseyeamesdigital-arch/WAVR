@@ -25,14 +25,14 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 mb-8">
         <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
           <div className="flex items-center gap-3 mb-2">
-            <FileText size={18} className="text-orange-400" />
+            <FileText size={18} className="text-arb-blue-light" />
             <span className="text-sm text-zinc-400">Waivers</span>
           </div>
           <p className="text-3xl font-bold text-white">{waiverCount ?? 0}</p>
         </div>
         <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
           <div className="flex items-center gap-3 mb-2">
-            <Users size={18} className="text-orange-400" />
+            <Users size={18} className="text-arb-blue-light" />
             <span className="text-sm text-zinc-400">Total guests</span>
           </div>
           <p className="text-3xl font-bold text-white">{guestCount ?? 0}</p>
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
 
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-white">Recent sign-ins</h2>
-        <Link href="/dashboard/guests" className="text-sm text-orange-400 hover:text-orange-300">
+        <Link href="/dashboard/guests" className="text-sm text-arb-blue-light hover:text-arb-teal">
           View all
         </Link>
       </div>
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
           <p className="text-zinc-400 text-sm">No sign-ins yet.</p>
           <Link
             href="/dashboard/waivers/new"
-            className="mt-3 inline-block text-sm text-orange-400 hover:text-orange-300"
+            className="mt-3 inline-block text-sm text-arb-blue-light hover:text-arb-teal"
           >
             Create your first waiver →
           </Link>
