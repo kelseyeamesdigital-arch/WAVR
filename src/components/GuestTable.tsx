@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText } from "lucide-react";
+import { useState, useTransition } from "react";
+import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2 } from "lucide-react";
+import { deleteGuest } from "@/app/actions/delete";
 
 type Guest = {
   id: string;
@@ -22,6 +23,8 @@ function waiverTitle(w: Guest["waiver"]) {
 
 export default function GuestTable({ guests }: { guests: Guest[] }) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
   if (guests.length === 0) {
     return (
@@ -85,6 +88,34 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                     />
                   </div>
                 )}
+                <div className="col-span-2 mt-3 pt-3 border-t border-zinc-700 flex items-center justify-end gap-2">
+                  {confirming === g.id ? (
+                    <>
+                      <span className="text-xs text-zinc-400">Remove this guest?</span>
+                      <button
+                        onClick={() => startTransition(async () => { await deleteGuest(g.id); setConfirming(null); setExpanded(null); })}
+                        disabled={pending}
+                        className="text-xs px-2 py-1 rounded bg-red-600 hover:bg-red-500 text-white font-semibold disabled:opacity-50 transition"
+                      >
+                        {pending ? "Deleting…" : "Yes, delete"}
+                      </button>
+                      <button
+                        onClick={() => setConfirming(null)}
+                        className="text-xs px-2 py-1 rounded bg-zinc-700 hover:bg-zinc-600 text-white transition"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setConfirming(g.id)}
+                      className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-red-400 transition"
+                    >
+                      <Trash2 size={13} />
+                      Delete guest
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

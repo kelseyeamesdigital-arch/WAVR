@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, ExternalLink, Users } from "lucide-react";
+import DeleteWaiverButton from "@/components/DeleteWaiverButton";
 
 export default async function WaiversPage() {
   const supabase = await createClient();
@@ -54,6 +55,7 @@ export default async function WaiversPage() {
                   <ExternalLink size={14} />
                   Sign link
                 </Link>
+                <DeleteWaiverButton waiverId={w.id} waiverTitle={w.title} />
               </div>
             </div>
           ))}
