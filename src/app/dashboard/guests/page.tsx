@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Search } from "lucide-react";
 import GuestTable from "@/components/GuestTable";
+import ExportCsvButton from "@/components/ExportCsvButton";
 
 export default async function GuestsPage({
   searchParams,
@@ -27,7 +28,10 @@ export default async function GuestsPage({
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Guests</h1>
-        <span className="text-sm text-zinc-400">{guests?.length ?? 0} total</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-zinc-400">{guests?.length ?? 0} total</span>
+          <ExportCsvButton />
+        </div>
       </div>
 
       <form className="mb-6">
