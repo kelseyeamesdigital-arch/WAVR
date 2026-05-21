@@ -205,6 +205,72 @@ function RadioOption({
   );
 }
 
+// ─── All Done Screen (auto-returns to welcome) ───────────────────────────────
+
+function AllDoneScreen({ signedGuests, onReset }: { signedGuests: string[]; onReset: () => void }) {
+  const [countdown, setCountdown] = useState(5);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(interval);
+          onReset();
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [onReset]);
+
+  return (
+    <FullScreen>
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
+          <CheckCircle size={56} className="text-arb-teal mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-arb-green mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+            ALL SIGNED IN!
+          </h2>
+          <p className="text-gray-500 text-sm mb-4">
+            {signedGuests.length === 1
+              ? `Thanks ${signedGuests[0]}, you're all set!`
+              : `Thanks everyone — all ${signedGuests.length} of you are set!`}
+          </p>
+          {signedGuests.length > 1 && (
+            <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 mb-4 text-left">
+              {signedGuests.map((name, i) => (
+                <div key={i} className="flex items-center gap-2 py-1.5">
+                  <CheckCircle size={14} className="text-arb-teal shrink-0" />
+                  <span className="text-sm text-gray-700">{name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="text-gray-400 text-sm">Enjoy your adventure! 🌊</p>
+
+          {/* Countdown ring */}
+          <div className="mt-5 flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full border-4 border-arb-teal/30 flex items-center justify-center">
+              <span className="text-lg font-bold text-arb-teal">{countdown}</span>
+            </div>
+            <p className="text-xs text-gray-400">Returning to check-in…</p>
+          </div>
+
+          <button
+            onClick={onReset}
+            className="mt-4 text-xs text-arb-blue underline"
+          >
+            Start now
+          </button>
+
+          <p className="text-xs text-gray-300 mt-4">Adventure Rafting Bled · adventure-rafting.com</p>
+        </div>
+      </div>
+    </FullScreen>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
@@ -402,42 +468,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   // ─── ALL DONE ──────────────────────────────────────────────────────────────
 
   if (view === "alldone") {
-    return (
-      <FullScreen>
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-            <CheckCircle size={56} className="text-arb-teal mx-auto mb-4" />
-            <h2
-              className="text-2xl font-bold text-arb-green mb-2"
-              style={{ fontFamily: "Oswald, sans-serif" }}
-            >
-              ALL SIGNED IN!
-            </h2>
-            <p className="text-gray-500 text-sm mb-6">
-              {signedGuests.length === 1
-                ? `${signedGuests[0]} is ready to go.`
-                : `${signedGuests.length} people are ready to go.`}
-            </p>
-            {signedGuests.length > 1 && (
-              <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 mb-6 text-left">
-                {signedGuests.map((name, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1.5">
-                    <CheckCircle size={14} className="text-arb-teal shrink-0" />
-                    <span className="text-sm text-gray-700">{name}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p className="text-gray-400 text-sm font-medium">
-              Please hand the device back to your guide.
-            </p>
-            <p className="text-xs text-gray-300 mt-4">
-              Adventure Rafting Bled · adventure-rafting.com
-            </p>
-          </div>
-        </div>
-      </FullScreen>
-    );
+    return <AllDoneScreen signedGuests={signedGuests} onReset={resetWizard} />;
   }
 
   // ─── SUCCESS ───────────────────────────────────────────────────────────────
