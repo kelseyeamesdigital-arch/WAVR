@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { createClient } from "@/lib/supabase/client";
 import { CheckCircle, Users, ChevronLeft, Trash2, ChevronRight } from "lucide-react";
@@ -264,6 +264,20 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setStepIndex(prev);
     setError("");
   }
+
+  // Auto-unlock terms if content doesn't need scrolling
+  useEffect(() => {
+    if (currentStep.type !== "terms") return;
+    const el = termsRef.current;
+    if (!el) return;
+    // Small timeout to let the DOM render first
+    const t = setTimeout(() => {
+      if (el.scrollHeight <= el.clientHeight + 10) {
+        setTermsScrolled(true);
+      }
+    }, 100);
+    return () => clearTimeout(t);
+  }, [currentStep.type]);
 
   function handleTermsScroll() {
     const el = termsRef.current;
@@ -576,13 +590,13 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                   ↓ Scroll to read all terms before agreeing
                 </p>
               )}
-              <RadioOption
-                label="I agree to the above terms and conditions"
-                selected={agreed}
-                onClick={() => {
-                  if (termsScrolled) setAgreed(!agreed);
-                }}
-              />
+              <div className={!termsScrolled ? "opacity-40 pointer-events-none" : ""}>
+                <RadioOption
+                  label="I agree to the above terms and conditions"
+                  selected={agreed}
+                  onClick={() => setAgreed(!agreed)}
+                />
+              </div>
               {error && <p className="text-red-500 text-sm">{error}</p>}
               <NextBtn onClick={handleNext} disabled={!agreed} />
             </div>
