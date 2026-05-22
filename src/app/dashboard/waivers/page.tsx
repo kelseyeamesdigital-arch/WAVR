@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { Plus, ExternalLink, Users } from "lucide-react";
+import { Plus, ExternalLink, Users, Pencil } from "lucide-react";
 import DeleteWaiverButton from "@/components/DeleteWaiverButton";
 
 export default async function WaiversPage() {
@@ -40,6 +40,13 @@ export default async function WaiversPage() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
+                <Link
+                  href={`/dashboard/waivers/${w.id}/edit`}
+                  className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition"
+                >
+                  <Pencil size={14} />
+                  Edit
+                </Link>
                 <Link
                   href={`/dashboard/guests?waiver=${w.id}`}
                   className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition"

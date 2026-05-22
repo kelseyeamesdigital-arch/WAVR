@@ -37,13 +37,21 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
-export default function WaiverBuilder() {
+type InitialData = {
+  id: string;
+  title: string;
+  body_text: string;
+  fields: Field[];
+};
+
+export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(initial?.title ?? "");
   const [bodyText, setBodyText] = useState(
+    initial?.body_text ??
     "I understand that participating in this activity involves risk of injury or death. I voluntarily assume all risks and waive any claims against the operator."
   );
-  const [fields, setFields] = useState<Field[]>(DEFAULT_FIELDS);
+  const [fields, setFields] = useState<Field[]>(initial?.fields ?? DEFAULT_FIELDS);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -68,15 +76,26 @@ export default function WaiverBuilder() {
     setError("");
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from("waivers").insert({
-      operator_id: user!.id,
-      title: title.trim(),
-      body_text: bodyText,
-      fields: fields,
-      is_active: true,
-    });
-    if (error) {
-      setError(error.message);
+
+    let err;
+    if (initial?.id) {
+      ({ error: err } = await supabase
+        .from("waivers")
+        .update({ title: title.trim(), body_text: bodyText, fields })
+        .eq("id", initial.id)
+        .eq("operator_id", user!.id));
+    } else {
+      ({ error: err } = await supabase.from("waivers").insert({
+        operator_id: user!.id,
+        title: title.trim(),
+        body_text: bodyText,
+        fields,
+        is_active: true,
+      }));
+    }
+
+    if (err) {
+      setError(err.message);
       setSaving(false);
     } else {
       router.push("/dashboard/waivers");
@@ -198,7 +217,7 @@ export default function WaiverBuilder() {
         disabled={saving}
         className="w-full py-3 rounded-xl bg-arb-blue hover:bg-arb-blue-light text-white font-semibold transition disabled:opacity-50"
       >
-        {saving ? "Saving…" : "Save waiver"}
+        {saving ? "Saving…" : initial?.id ? "Save changes" : "Save waiver"}
       </button>
     </div>
   );
