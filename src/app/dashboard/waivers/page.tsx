@@ -14,7 +14,7 @@ export default async function WaiversPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Waivers</h1>
         <Link
@@ -31,15 +31,15 @@ export default async function WaiversPage() {
           {waivers.map((w) => (
             <div
               key={w.id}
-              className="bg-zinc-800 rounded-xl border border-zinc-700 px-5 py-4 flex items-center justify-between"
+              className="bg-zinc-800 rounded-xl border border-zinc-700 px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
             >
-              <div>
-                <p className="text-sm font-medium text-white">{w.title}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white truncate">{w.title}</p>
                 <p className="text-xs text-zinc-500 mt-0.5">
                   Created {new Date(w.created_at).toLocaleDateString()}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Link
                   href={`/dashboard/waivers/${w.id}/edit`}
                   className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition"

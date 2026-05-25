@@ -19,10 +19,10 @@ export default async function DashboardPage() {
     .limit(5);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-6">Dashboard</h1>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-2 gap-3 mb-8">
         <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
           <div className="flex items-center gap-3 mb-2">
             <FileText size={18} className="text-arb-blue-light" />
@@ -49,14 +49,14 @@ export default async function DashboardPage() {
       {recentGuests && recentGuests.length > 0 ? (
         <div className="bg-zinc-800 rounded-xl border border-zinc-700 divide-y divide-zinc-700 overflow-hidden">
           {recentGuests.map((g) => (
-            <div key={g.id} className="flex items-center justify-between px-5 py-4">
-              <div>
-                <p className="text-sm font-medium text-white">{g.guest_name}</p>
-                <p className="text-xs text-zinc-500 mt-0.5">
+            <div key={g.id} className="flex items-start justify-between px-4 py-3 gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-white truncate">{g.guest_name}</p>
+                <p className="text-xs text-zinc-500 mt-0.5 truncate">
                   {Array.isArray(g.waiver) ? g.waiver[0]?.title : (g.waiver as { title: string } | null)?.title ?? "—"}
                 </p>
               </div>
-              <span className="text-xs text-zinc-500">
+              <span className="text-xs text-zinc-500 shrink-0">
                 {new Date(g.created_at).toLocaleDateString()}
               </span>
             </div>
