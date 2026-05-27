@@ -1,0 +1,21 @@
+{
+  "name": "WAVR – Adventure Rafting Bled",
+  "short_name": "WAVR",
+  "description": "Guest check-in for Adventure Rafting Bled",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#1E9FD4",
+  "icons": [
+    {
+      "src": "/logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

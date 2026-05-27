@@ -43,6 +43,7 @@ type InitialData = {
   body_text: string;
   fields: Field[];
   slug?: string | null;
+  cover_image_url?: string | null;
 };
 
 function toSlug(str: string) {
@@ -59,6 +60,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(!!initial?.slug);
+  const [coverImageUrl, setCoverImageUrl] = useState(initial?.cover_image_url ?? "");
   const [bodyText, setBodyText] = useState(
     initial?.body_text ??
     "I understand that participating in this activity involves risk of injury or death. I voluntarily assume all risks and waive any claims against the operator."
@@ -98,7 +100,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
     if (initial?.id) {
       ({ error: err } = await supabase
         .from("waivers")
-        .update({ title: title.trim(), slug: slug || null, body_text: bodyText, fields })
+        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, body_text: bodyText, fields })
         .eq("id", initial.id)
         .eq("operator_id", user!.id));
     } else {
@@ -106,6 +108,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
         operator_id: user!.id,
         title: title.trim(),
         slug: slug || null,
+        cover_image_url: coverImageUrl || null,
         body_text: bodyText,
         fields,
         is_active: true,
@@ -146,6 +149,20 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
               className="flex-1 px-3 py-2.5 bg-transparent text-white text-sm placeholder-zinc-500 focus:outline-none"
             />
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">
+            Cover photo URL <span className="text-zinc-500 font-normal">(shown on the welcome screen)</span>
+          </label>
+          <input
+            value={coverImageUrl}
+            onChange={(e) => setCoverImageUrl(e.target.value)}
+            placeholder="https://example.com/your-activity-photo.jpg"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent text-sm"
+          />
+          {coverImageUrl && (
+            <img src={coverImageUrl} alt="Preview" className="mt-2 h-24 w-full object-cover rounded-lg opacity-80" />
+          )}
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">Waiver text / liability statement</label>

@@ -9,7 +9,7 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
   // Try slug first, fall back to UUID
   let { data: waiver } = await supabase
     .from("waivers")
-    .select("id, title, body_text, fields, operator_id")
+    .select("id, title, body_text, fields, operator_id, cover_image_url")
     .eq("slug", id)
     .eq("is_active", true)
     .maybeSingle();
@@ -17,7 +17,7 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
   if (!waiver) {
     ({ data: waiver } = await supabase
       .from("waivers")
-      .select("id, title, body_text, fields, operator_id")
+      .select("id, title, body_text, fields, operator_id, cover_image_url")
       .eq("id", id)
       .eq("is_active", true)
       .maybeSingle());

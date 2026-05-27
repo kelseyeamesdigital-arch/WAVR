@@ -22,6 +22,7 @@ type Waiver = {
   body_text: string;
   fields: Field[];
   operator_id: string;
+  cover_image_url?: string | null;
 };
 
 type Step =
@@ -551,42 +552,47 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
 
   if (currentStep.type === "welcome") {
     return (
-      <FullScreen>
-        <div className="flex-1 flex flex-col justify-end">
-          <Card>
-            <div className="p-7 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-arb-blue flex items-center justify-center mx-auto mb-3">
-                <span
-                  className="text-white font-bold text-base"
-                  style={{ fontFamily: "Oswald, sans-serif" }}
-                >
-                  ARB
-                </span>
-              </div>
-              <p className="text-xs text-arb-teal tracking-widest font-semibold mb-5">
-                ADVENTURE RAFTING BLED
-              </p>
-              {signedGuests.length > 0 && (
-                <p className="text-sm text-arb-blue font-semibold mb-2">
-                  Person {signedGuests.length + 1} in your group
-                </p>
-              )}
-              <h1
-                className="text-3xl font-bold text-gray-900 mb-2 leading-tight"
-                style={{ fontFamily: "Oswald, sans-serif" }}
-              >
-                {waiver.title.toUpperCase()}
-              </h1>
-              <p className="text-gray-500 text-base mb-8">
-                Get ready for your adventure!<br />
-                <span className="text-gray-400 text-sm">First, let&apos;s get you checked in.</span>
-              </p>
-              <NextBtn onClick={advance} label="GET STARTED!" />
-              <p className="text-xs text-gray-300 mt-4">adventure-rafting.com</p>
-            </div>
-          </Card>
+      <div className="min-h-screen flex flex-col">
+        {/* Hero image */}
+        <div className="flex-1 relative min-h-[45vh]">
+          {waiver.cover_image_url ? (
+            <img
+              src={waiver.cover_image_url}
+              alt={waiver.title}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0" style={{ background: BG }} />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/60" />
         </div>
-      </FullScreen>
+
+        {/* Card slides up from bottom */}
+        <div className="bg-white rounded-t-3xl shadow-2xl px-7 pt-7 pb-10 -mt-6 relative z-10">
+          <img
+            src="/logo-full.png"
+            alt="Adventure Rafting Bled"
+            className="h-14 mx-auto mb-5"
+          />
+          {signedGuests.length > 0 && (
+            <p className="text-sm text-arb-blue font-semibold mb-2 text-center">
+              Person {signedGuests.length + 1} in your group
+            </p>
+          )}
+          <h1
+            className="text-3xl font-bold text-gray-900 mb-2 leading-tight text-center"
+            style={{ fontFamily: "Oswald, sans-serif" }}
+          >
+            {waiver.title.toUpperCase()}
+          </h1>
+          <p className="text-gray-500 text-base mb-8 text-center">
+            Get ready for your adventure!<br />
+            <span className="text-gray-400 text-sm">First, let&apos;s get you checked in.</span>
+          </p>
+          <NextBtn onClick={advance} label="GET STARTED!" />
+          <p className="text-xs text-gray-300 mt-5 text-center">adventure-rafting.com</p>
+        </div>
+      </div>
     );
   }
 

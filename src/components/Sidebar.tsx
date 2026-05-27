@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, FileText, Users, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -30,16 +31,8 @@ export default function Sidebar({ user }: { user: User }) {
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex w-56 flex-col bg-zinc-950 border-r border-zinc-800 shrink-0">
         <div className="px-5 py-5 border-b border-zinc-800">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded bg-arb-blue flex items-center justify-center shrink-0">
-              <span className="text-white font-bold text-xs" style={{ fontFamily: "Oswald, sans-serif" }}>ARB</span>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-white leading-tight" style={{ fontFamily: "Oswald, sans-serif" }}>ADVENTURE RAFTING</p>
-              <p className="text-[10px] text-arb-teal leading-tight tracking-widest">BLED</p>
-            </div>
-          </div>
-          <p className="text-xs text-zinc-500 mt-2 truncate">{businessName}</p>
+          <Image src="/logo-full.png" alt="Adventure Rafting Bled" width={160} height={80} className="w-32 mb-2 brightness-0 invert" />
+          <p className="text-xs text-zinc-500 truncate">{businessName}</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map(({ href, label, icon: Icon }) => {
@@ -73,15 +66,7 @@ export default function Sidebar({ user }: { user: User }) {
 
       {/* ── Mobile top bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded bg-arb-blue flex items-center justify-center shrink-0">
-            <span className="text-white font-bold text-xs" style={{ fontFamily: "Oswald, sans-serif" }}>ARB</span>
-          </div>
-          <div>
-            <p className="text-xs font-bold text-white leading-tight" style={{ fontFamily: "Oswald, sans-serif" }}>ADVENTURE RAFTING</p>
-            <p className="text-[10px] text-arb-teal leading-tight tracking-widest">BLED</p>
-          </div>
-        </div>
+        <Image src="/logo-full.png" alt="Adventure Rafting Bled" width={120} height={60} className="h-8 w-auto brightness-0 invert" />
         <button
           onClick={handleSignOut}
           className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition px-2 py-1.5 rounded-lg hover:bg-zinc-800"
