@@ -571,13 +571,16 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                   Person {signedGuests.length + 1} in your group
                 </p>
               )}
-              <p className="text-gray-500 text-base mb-1">Hi!</p>
+              <p className="text-gray-500 text-sm mb-1">Welcome to</p>
               <h1
-                className="text-2xl font-bold text-gray-900 mb-8 leading-snug"
+                className="text-3xl font-bold text-gray-900 mb-2 leading-tight"
                 style={{ fontFamily: "Oswald, sans-serif" }}
               >
-                WELCOME TO THE ADVENTURE RAFTING BLED ONLINE CHECK-IN!
+                {waiver.title.toUpperCase()}
               </h1>
+              <p className="text-gray-400 text-sm mb-8">
+                Please complete this check-in before your activity.
+              </p>
               <NextBtn onClick={advance} label="GET STARTED!" />
               <p className="text-xs text-gray-300 mt-4">adventure-rafting.com</p>
             </div>

@@ -6,12 +6,22 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: waiver } = await supabase
+  // Try slug first, fall back to UUID
+  let { data: waiver } = await supabase
     .from("waivers")
     .select("id, title, body_text, fields, operator_id")
-    .eq("id", id)
+    .eq("slug", id)
     .eq("is_active", true)
-    .single();
+    .maybeSingle();
+
+  if (!waiver) {
+    ({ data: waiver } = await supabase
+      .from("waivers")
+      .select("id, title, body_text, fields, operator_id")
+      .eq("id", id)
+      .eq("is_active", true)
+      .maybeSingle());
+  }
 
   if (!waiver) notFound();
 

@@ -9,7 +9,7 @@ export default async function WaiversPage() {
 
   const { data: waivers } = await supabase
     .from("waivers")
-    .select("id, title, created_at, is_active")
+    .select("id, title, created_at, is_active, slug")
     .eq("operator_id", user!.id)
     .order("created_at", { ascending: false });
 
@@ -55,7 +55,7 @@ export default async function WaiversPage() {
                   Guests
                 </Link>
                 <Link
-                  href={`/sign/${w.id}`}
+                  href={`/sign/${w.slug ?? w.id}`}
                   target="_blank"
                   className="flex items-center gap-1.5 text-xs text-arb-blue-light hover:text-arb-teal transition"
                 >

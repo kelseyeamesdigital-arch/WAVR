@@ -42,11 +42,23 @@ type InitialData = {
   title: string;
   body_text: string;
   fields: Field[];
+  slug?: string | null;
 };
+
+function toSlug(str: string) {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
+}
 
 export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const router = useRouter();
   const [title, setTitle] = useState(initial?.title ?? "");
+  const [slug, setSlug] = useState(initial?.slug ?? "");
+  const [slugEdited, setSlugEdited] = useState(!!initial?.slug);
   const [bodyText, setBodyText] = useState(
     initial?.body_text ??
     "I understand that participating in this activity involves risk of injury or death. I voluntarily assume all risks and waive any claims against the operator."
@@ -54,6 +66,11 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const [fields, setFields] = useState<Field[]>(initial?.fields ?? DEFAULT_FIELDS);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  function handleTitleChange(val: string) {
+    setTitle(val);
+    if (!slugEdited) setSlug(toSlug(val));
+  }
 
   function addField() {
     setFields((f) => [...f, { id: uid(), label: "New field", type: "text", required: false }]);
@@ -81,13 +98,14 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
     if (initial?.id) {
       ({ error: err } = await supabase
         .from("waivers")
-        .update({ title: title.trim(), body_text: bodyText, fields })
+        .update({ title: title.trim(), slug: slug || null, body_text: bodyText, fields })
         .eq("id", initial.id)
         .eq("operator_id", user!.id));
     } else {
       ({ error: err } = await supabase.from("waivers").insert({
         operator_id: user!.id,
         title: title.trim(),
+        slug: slug || null,
         body_text: bodyText,
         fields,
         is_active: true,
@@ -110,10 +128,24 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
           <label className="block text-sm font-medium text-zinc-300 mb-1">Waiver title</label>
           <input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Bungy Jump Liability Waiver"
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="e.g. Bled Canyoning Waiver"
             className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
           />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">
+            URL slug <span className="text-zinc-500 font-normal">(used in the sign link)</span>
+          </label>
+          <div className="flex items-center rounded-lg bg-zinc-900 border border-zinc-700 overflow-hidden focus-within:ring-2 focus-within:ring-arb-blue">
+            <span className="px-3 py-2.5 text-zinc-500 text-sm border-r border-zinc-700 select-none whitespace-nowrap">/sign/</span>
+            <input
+              value={slug}
+              onChange={(e) => { setSlug(toSlug(e.target.value)); setSlugEdited(true); }}
+              placeholder="bled-canyoning"
+              className="flex-1 px-3 py-2.5 bg-transparent text-white text-sm placeholder-zinc-500 focus:outline-none"
+            />
+          </div>
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">Waiver text / liability statement</label>
