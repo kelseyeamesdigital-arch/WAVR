@@ -31,7 +31,9 @@ export default function Sidebar({ user }: { user: User }) {
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex w-56 flex-col bg-zinc-950 border-r border-zinc-800 shrink-0">
         <div className="px-5 py-5 border-b border-zinc-800">
-          <Image src="/logo-full.png" alt="Adventure Rafting Bled" width={160} height={80} className="w-32 mb-2 brightness-0 invert" />
+          <div className="bg-white rounded-xl p-2 inline-block mb-2">
+            <Image src="/logo-full.png" alt="Adventure Rafting Bled" width={140} height={70} className="w-28 h-auto" />
+          </div>
           <p className="text-xs text-zinc-500 truncate">{businessName}</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
@@ -66,7 +68,9 @@ export default function Sidebar({ user }: { user: User }) {
 
       {/* ── Mobile top bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
-        <Image src="/logo-full.png" alt="Adventure Rafting Bled" width={120} height={60} className="h-8 w-auto brightness-0 invert" />
+        <div className="bg-white rounded-lg px-2 py-1">
+          <Image src="/logo-full.png" alt="Adventure Rafting Bled" width={100} height={50} className="h-7 w-auto" />
+        </div>
         <button
           onClick={handleSignOut}
           className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition px-2 py-1.5 rounded-lg hover:bg-zinc-800"
