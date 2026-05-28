@@ -23,19 +23,22 @@ type Waiver = {
   fields: Field[];
   operator_id: string;
   cover_image_url?: string | null;
+  trip_time_slots?: string | null;
 };
 
 type Step =
   | { type: "welcome" }
+  | { type: "trip" }
   | { type: "field"; field: Field }
-  | { type: "followup"; field: Field }   // conditional follow-up (skipped if answer is No)
+  | { type: "followup"; field: Field }
   | { type: "terms" }
   | { type: "signature" };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function buildSteps(fields: Field[]): Step[] {
+function buildSteps(fields: Field[], hasTrip: boolean): Step[] {
   const steps: Step[] = [{ type: "welcome" }];
+  if (hasTrip) steps.push({ type: "trip" });
   for (const field of fields) {
     steps.push({ type: "field", field });
     if (field.type === "conditional" && field.followUpLabel) {
@@ -279,6 +282,8 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   const termsRef = useRef<HTMLDivElement>(null);
 
   const [values, setValues] = useState<Record<string, string>>({});
+  const [tripDate, setTripDate] = useState(new Date().toISOString().slice(0, 10));
+  const [tripTime, setTripTime] = useState("");
   const [dobD, setDobD] = useState("");
   const [dobM, setDobM] = useState("");
   const [dobY, setDobY] = useState("");
@@ -294,7 +299,14 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   const [view, setView] = useState<"wizard" | "success" | "alldone">("wizard");
   const [lastSigned, setLastSigned] = useState("");
 
-  const steps = useMemo(() => buildSteps(waiver.fields), [waiver.fields]);
+  const timeSlots = waiver.trip_time_slots
+    ? waiver.trip_time_slots.split(",").map((s) => s.trim()).filter(Boolean)
+    : [];
+  const steps = useMemo(
+    () => buildSteps(waiver.fields, timeSlots.length > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [waiver.fields, waiver.trip_time_slots]
+  );
   const currentStep = steps[stepIndex];
 
   const guestName = getGuestName(waiver.fields, values);
@@ -355,6 +367,11 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   function handleNext() {
     setError("");
     const step = currentStep;
+
+    if (step.type === "trip") {
+      if (!tripDate) { setError("Please select a trip date."); return; }
+      if (timeSlots.length > 0 && !tripTime) { setError("Please select a departure time."); return; }
+    }
 
     if (step.type === "field") {
       const { field } = step;
@@ -433,6 +450,8 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
       guest_email: guestEmail,
       guest_age: age,
       guest_country: guestCountry,
+      trip_date: tripDate || null,
+      trip_time: tripTime || null,
       form_data: {
         ...values,
         dob: dobD && dobM && dobY ? `${dobY}-${dobM}-${dobD}` : undefined,
@@ -454,6 +473,8 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
 
   function resetWizard() {
     setValues({});
+    setTripDate(new Date().toISOString().slice(0, 10));
+    setTripTime("");
     setDobD(""); setDobM(""); setDobY("");
     setGuardianName("");
     setAgreed(false);
@@ -593,6 +614,60 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
           <p className="text-xs text-gray-300 mt-5 text-center">adventure-rafting.com</p>
         </div>
       </div>
+    );
+  }
+
+  // ─── TRIP DATE / TIME ──────────────────────────────────────────────────────
+
+  if (currentStep.type === "trip") {
+    return (
+      <FullScreen>
+        <TopBar onBack={goBack} onDiscard={resetWizard} />
+        <div className="flex-1 flex flex-col justify-end">
+          <Card>
+            <div className="p-6">
+              <p className="text-xs font-bold text-arb-teal tracking-widest uppercase mb-1">Your Trip</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>
+                WHEN IS YOUR TRIP?
+              </h2>
+
+              {/* Date picker */}
+              <div className="mb-5">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Trip date</label>
+                <input
+                  type="date"
+                  value={tripDate}
+                  onChange={(e) => setTripDate(e.target.value)}
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 text-base focus:outline-none focus:border-arb-blue"
+                />
+              </div>
+
+              {/* Time slots */}
+              {timeSlots.length > 0 && (
+                <div className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Departure time</label>
+                  <div className="space-y-2">
+                    {timeSlots.map((slot) => (
+                      <RadioOption
+                        key={slot}
+                        label={slot}
+                        selected={tripTime === slot}
+                        onClick={() => setTripTime(slot)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+              <NextBtn
+                onClick={handleNext}
+                disabled={!tripDate || (timeSlots.length > 0 && !tripTime)}
+              />
+            </div>
+          </Card>
+        </div>
+      </FullScreen>
     );
   }
 

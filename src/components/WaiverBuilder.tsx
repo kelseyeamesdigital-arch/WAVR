@@ -157,6 +157,7 @@ type InitialData = {
   fields: Field[];
   slug?: string | null;
   cover_image_url?: string | null;
+  trip_time_slots?: string | null;
 };
 
 function toSlug(str: string) {
@@ -174,6 +175,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugEdited, setSlugEdited] = useState(!!initial?.slug);
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.cover_image_url ?? "");
+  const [tripTimeSlots, setTripTimeSlots] = useState(initial?.trip_time_slots ?? "8:00 AM,1:00 PM");
   const [bodyText, setBodyText] = useState(
     initial?.body_text ??
     "I understand that participating in this activity involves risk of injury or death. I voluntarily assume all risks and waive any claims against the operator."
@@ -229,7 +231,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
     if (initial?.id) {
       ({ error: err } = await supabase
         .from("waivers")
-        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, body_text: bodyText, fields })
+        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, trip_time_slots: tripTimeSlots || null, body_text: bodyText, fields })
         .eq("id", initial.id)
         .eq("operator_id", user!.id));
     } else {
@@ -238,6 +240,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
         title: title.trim(),
         slug: slug || null,
         cover_image_url: coverImageUrl || null,
+        trip_time_slots: tripTimeSlots || null,
         body_text: bodyText,
         fields,
         is_active: true,
@@ -291,6 +294,24 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
           />
           {coverImageUrl && (
             <img src={coverImageUrl} alt="Preview" className="mt-2 h-24 w-full object-cover rounded-lg opacity-80" />
+          )}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-zinc-300 mb-1">
+            Departure time slots <span className="text-zinc-500 font-normal">(comma-separated — leave blank to skip trip date step)</span>
+          </label>
+          <input
+            value={tripTimeSlots}
+            onChange={(e) => setTripTimeSlots(e.target.value)}
+            placeholder="8:00 AM,1:00 PM"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent text-sm"
+          />
+          {tripTimeSlots && (
+            <div className="mt-2 flex gap-2 flex-wrap">
+              {tripTimeSlots.split(",").filter(Boolean).map((s) => (
+                <span key={s} className="text-xs bg-arb-blue/20 text-arb-blue-light px-2 py-1 rounded-full">{s.trim()}</span>
+              ))}
+            </div>
           )}
         </div>
         <div>

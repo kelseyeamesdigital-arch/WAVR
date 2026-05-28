@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock } from "lucide-react";
 import { deleteGuest } from "@/app/actions/delete";
 
 type WaiverField = {
@@ -20,6 +20,8 @@ type Guest = {
   created_at: string;
   signature_url: string | null;
   form_data: Record<string, string> | null;
+  trip_date: string | null;
+  trip_time: string | null;
   waiver: { title: string; fields: WaiverField[] } | { title: string; fields: WaiverField[] }[] | null;
 };
 
@@ -92,9 +94,14 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
               </div>
 
               {/* Date + chevron */}
-              <div className="shrink-0 flex items-center gap-1.5 text-xs text-zinc-500">
-                <span>{new Date(g.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
-                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+              <div className="shrink-0 flex flex-col items-end gap-0.5">
+                <div className="flex items-center gap-1 text-xs text-zinc-400">
+                  {g.trip_date
+                    ? new Date(g.trip_date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+                    : new Date(g.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                  {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                </div>
+                {g.trip_time && <span className="text-[10px] text-arb-blue-light">{g.trip_time}</span>}
               </div>
             </button>
 
@@ -114,6 +121,24 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                         <span className="font-semibold">{d.question}:</span> {d.answer}
                       </p>
                     ))}
+                  </div>
+                )}
+
+                {/* Trip info */}
+                {(g.trip_date || g.trip_time) && (
+                  <div className="flex items-center gap-3 bg-zinc-700/30 rounded-lg px-3 py-2">
+                    {g.trip_date && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                        <Calendar size={12} className="text-arb-blue-light" />
+                        {new Date(g.trip_date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
+                      </div>
+                    )}
+                    {g.trip_time && (
+                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                        <Clock size={12} className="text-arb-blue-light" />
+                        {g.trip_time}
+                      </div>
+                    )}
                   </div>
                 )}
 
