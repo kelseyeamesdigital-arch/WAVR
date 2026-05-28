@@ -471,10 +471,12 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     }
   }
 
-  function resetWizard() {
+  function resetWizard(keepTrip = false) {
     setValues({});
-    setTripDate(new Date().toISOString().slice(0, 10));
-    setTripTime("");
+    if (!keepTrip) {
+      setTripDate(new Date().toISOString().slice(0, 10));
+      setTripTime("");
+    }
     setDobD(""); setDobM(""); setDobY("");
     setGuardianName("");
     setAgreed(false);
@@ -482,7 +484,9 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setError("");
     setSubmitting(false);
     sigRef.current?.clear();
-    setStepIndex(0);
+    // Skip trip step for subsequent group members
+    const startStep = keepTrip && timeSlots.length > 0 ? 2 : 0;
+    setStepIndex(startStep);
     setView("wizard");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -534,7 +538,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
 
               <div className="space-y-3">
                 <button
-                  onClick={resetWizard}
+                  onClick={() => resetWizard(true)}
                   className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2"
                   style={{
                     backgroundColor: "#1E9FD4",
