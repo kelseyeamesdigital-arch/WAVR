@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
-import { FileText, Users, PenLine } from "lucide-react";
+import { FileText, Users, PenLine, AlertTriangle } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -13,7 +13,7 @@ export default async function DashboardPage() {
 
   const { data: recentGuests } = await supabase
     .from("submissions")
-    .select("id, guest_name, created_at, waiver:waivers(title)")
+    .select("id, guest_name, created_at, form_data, waiver:waivers(title)")
     .eq("operator_id", user!.id)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -51,13 +51,21 @@ export default async function DashboardPage() {
           {recentGuests.map((g) => (
             <div key={g.id} className="flex items-start justify-between px-4 py-3 gap-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{g.guest_name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-white truncate">{g.guest_name}</p>
+                  {Object.values((g.form_data as Record<string,string>) ?? {}).includes("Yes") && (
+                    <span className="shrink-0 flex items-center gap-1 text-[10px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
+                      <AlertTriangle size={10} />
+                      Medical
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs text-zinc-500 mt-0.5 truncate">
                   {Array.isArray(g.waiver) ? g.waiver[0]?.title : (g.waiver as { title: string } | null)?.title ?? "—"}
                 </p>
               </div>
               <span className="text-xs text-zinc-500 shrink-0">
-                {new Date(g.created_at).toLocaleDateString()}
+                {new Date(g.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
               </span>
             </div>
           ))}
