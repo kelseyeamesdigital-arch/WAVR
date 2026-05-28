@@ -78,21 +78,6 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
               onClick={() => setExpanded(isExpanded ? null : g.id)}
               className="w-full px-4 py-3.5 text-left flex items-center gap-3 hover:bg-zinc-700/30 transition"
             >
-              {/* Flag dot */}
-              <div className="shrink-0">
-                {flagged ? (
-                  <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center">
-                    <AlertTriangle size={15} className="text-amber-400" />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center">
-                    <span className="text-xs font-bold text-zinc-400">
-                      {g.guest_name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
-
               {/* Name + waiver */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
