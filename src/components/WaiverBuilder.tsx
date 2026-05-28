@@ -4,6 +4,22 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, GripVertical } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type FieldType = "text" | "email" | "number" | "select" | "checkbox" | "date" | "conditional";
 
@@ -37,6 +53,103 @@ function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
+function SortableField({
+  field,
+  updateField,
+  removeField,
+}: {
+  field: Field;
+  updateField: (id: string, patch: Partial<Field>) => void;
+  removeField: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: field.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-zinc-800 rounded-xl border border-zinc-700 p-4 flex items-start gap-3"
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="text-zinc-500 hover:text-zinc-300 mt-2 shrink-0 cursor-grab active:cursor-grabbing touch-none"
+        title="Drag to reorder"
+      >
+        <GripVertical size={16} />
+      </button>
+      <div className="flex-1 grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs text-zinc-500 mb-1">Label</label>
+          <input
+            value={field.label}
+            onChange={(e) => updateField(field.id, { label: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-zinc-500 mb-1">Type</label>
+          <select
+            value={field.type}
+            onChange={(e) => updateField(field.id, { type: e.target.value as FieldType })}
+            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+          >
+            {FIELD_TYPES.map((t) => (
+              <option key={t.value} value={t.value}>{t.label}</option>
+            ))}
+          </select>
+        </div>
+        {field.type === "select" && (
+          <div className="col-span-2">
+            <label className="block text-xs text-zinc-500 mb-1">Options (comma-separated)</label>
+            <input
+              value={field.options ?? ""}
+              onChange={(e) => updateField(field.id, { options: e.target.value })}
+              placeholder="Option A, Option B, Option C"
+              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+            />
+          </div>
+        )}
+        {field.type === "conditional" && (
+          <div className="col-span-2">
+            <label className="block text-xs text-zinc-500 mb-1">Follow-up question (shown if Yes)</label>
+            <input
+              value={field.followUpLabel ?? ""}
+              onChange={(e) => updateField(field.id, { followUpLabel: e.target.value })}
+              placeholder="e.g. Please describe your medical condition"
+              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+            />
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={field.required}
+            onChange={(e) => updateField(field.id, { required: e.target.checked })}
+            className="accent-arb-blue"
+            id={`req-${field.id}`}
+          />
+          <label htmlFor={`req-${field.id}`} className="text-xs text-zinc-400">Required</label>
+        </div>
+      </div>
+      <button
+        onClick={() => removeField(field.id)}
+        className="text-zinc-600 hover:text-red-400 transition mt-1 shrink-0"
+      >
+        <Trash2 size={15} />
+      </button>
+    </div>
+  );
+}
+
 type InitialData = {
   id: string;
   title: string;
@@ -68,6 +181,22 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const [fields, setFields] = useState<Field[]>(initial?.fields ?? DEFAULT_FIELDS);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setFields((items) => {
+        const oldIndex = items.findIndex((f) => f.id === active.id);
+        const newIndex = items.findIndex((f) => f.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
 
   function handleTitleChange(val: string) {
     setTitle(val);
@@ -187,76 +316,20 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
           </button>
         </div>
 
-        <div className="space-y-2">
-          {fields.map((field) => (
-            <div
-              key={field.id}
-              className="bg-zinc-800 rounded-xl border border-zinc-700 p-4 flex items-start gap-3"
-            >
-              <GripVertical size={16} className="text-zinc-600 mt-2 shrink-0" />
-              <div className="flex-1 grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">Label</label>
-                  <input
-                    value={field.label}
-                    onChange={(e) => updateField(field.id, { label: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-zinc-500 mb-1">Type</label>
-                  <select
-                    value={field.type}
-                    onChange={(e) => updateField(field.id, { type: e.target.value as FieldType })}
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
-                  >
-                    {FIELD_TYPES.map((t) => (
-                      <option key={t.value} value={t.value}>{t.label}</option>
-                    ))}
-                  </select>
-                </div>
-                {field.type === "select" && (
-                  <div className="col-span-2">
-                    <label className="block text-xs text-zinc-500 mb-1">Options (comma-separated)</label>
-                    <input
-                      value={field.options ?? ""}
-                      onChange={(e) => updateField(field.id, { options: e.target.value })}
-                      placeholder="Option A, Option B, Option C"
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
-                    />
-                  </div>
-                )}
-                {field.type === "conditional" && (
-                  <div className="col-span-2">
-                    <label className="block text-xs text-zinc-500 mb-1">Follow-up question (shown if Yes)</label>
-                    <input
-                      value={field.followUpLabel ?? ""}
-                      onChange={(e) => updateField(field.id, { followUpLabel: e.target.value })}
-                      placeholder="e.g. Please describe your medical condition"
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
-                    />
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={field.required}
-                    onChange={(e) => updateField(field.id, { required: e.target.checked })}
-                    className="accent-arb-blue"
-                    id={`req-${field.id}`}
-                  />
-                  <label htmlFor={`req-${field.id}`} className="text-xs text-zinc-400">Required</label>
-                </div>
-              </div>
-              <button
-                onClick={() => removeField(field.id)}
-                className="text-zinc-600 hover:text-red-400 transition mt-1 shrink-0"
-              >
-                <Trash2 size={15} />
-              </button>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-2">
+              {fields.map((field) => (
+                <SortableField
+                  key={field.id}
+                  field={field}
+                  updateField={updateField}
+                  removeField={removeField}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {error && <p className="text-red-400 text-sm">{error}</p>}
