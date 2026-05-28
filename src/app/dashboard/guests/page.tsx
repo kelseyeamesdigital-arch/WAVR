@@ -14,7 +14,7 @@ export default async function GuestsPage({
 
   let query = supabase
     .from("submissions")
-    .select("id, guest_name, guest_email, guest_age, guest_country, created_at, signature_url, waiver:waivers(title)")
+    .select("id, guest_name, guest_email, guest_age, guest_country, created_at, signature_url, form_data, waiver:waivers(title, fields)")
     .eq("operator_id", user!.id)
     .order("created_at", { ascending: false });
 
