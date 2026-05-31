@@ -44,8 +44,8 @@ const FIELD_TYPES: { value: FieldType; label: string }[] = [
 
 const DEFAULT_FIELDS: Field[] = [
   { id: "name", label: "Full name", type: "text", required: true },
-  { id: "email", label: "Email address", type: "email", required: true },
   { id: "age", label: "Age", type: "number", required: true },
+  { id: "email", label: "Email address", type: "email", required: true },
   { id: "country", label: "Country", type: "text", required: true },
 ];
 

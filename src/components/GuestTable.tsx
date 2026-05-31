@@ -90,7 +90,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                     </span>
                   )}
                   {g.form_data?.wants_photos === "yes" && (
-                    <Camera size={13} className="shrink-0 text-arb-teal" title="Wants trip photos" />
+                    <Camera size={13} className="shrink-0 text-arb-teal" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-500 truncate mt-0.5">{waiver?.title ?? "—"}</p>
