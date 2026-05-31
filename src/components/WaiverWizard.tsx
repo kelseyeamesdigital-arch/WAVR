@@ -329,9 +329,16 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setValues((v) => ({ ...v, [id]: val }));
   }
 
+  // Skip followup if answer is No; also skip email field for under-18s
+  function isSkipped(step: Step): boolean {
+    if (shouldSkip(step, values)) return true;
+    if (step.type === "field" && step.field.type === "email" && isMinor) return true;
+    return false;
+  }
+
   function advance() {
     let next = stepIndex + 1;
-    while (next < steps.length && shouldSkip(steps[next], values)) next++;
+    while (next < steps.length && isSkipped(steps[next])) next++;
     setStepIndex(next);
     setError("");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -339,7 +346,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
 
   function goBack() {
     let prev = stepIndex - 1;
-    while (prev > 0 && shouldSkip(steps[prev], values)) prev--;
+    while (prev > 0 && isSkipped(steps[prev])) prev--;
     setStepIndex(prev);
     setError("");
   }
@@ -939,19 +946,40 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
               field.type !== "conditional" &&
               field.type !== "select" &&
               field.type !== "checkbox" && (
-                <input
-                  type={field.type === "date" ? "text" : field.type}
-                  value={values[field.id] ?? ""}
-                  onChange={(e) => sv(field.id, e.target.value)}
-                  placeholder={
-                    field.type === "email"
-                      ? "your@email.com"
-                      : field.type === "number"
-                      ? "0"
-                      : ""
-                  }
-                  className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 text-xl text-gray-900 focus:outline-none focus:border-arb-blue transition"
-                />
+                <div className="space-y-4">
+                  <input
+                    type={field.type === "date" ? "text" : field.type}
+                    value={values[field.id] ?? ""}
+                    onChange={(e) => sv(field.id, e.target.value)}
+                    placeholder={
+                      field.type === "email"
+                        ? "your@email.com"
+                        : field.type === "number"
+                        ? "0"
+                        : ""
+                    }
+                    className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 text-xl text-gray-900 focus:outline-none focus:border-arb-blue transition"
+                  />
+                  {/* Photo opt-in — only on email field */}
+                  {field.type === "email" && (
+                    <div className="bg-arb-blue/5 border border-arb-blue/20 rounded-2xl px-4 py-3">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={values["wants_photos"] === "yes"}
+                          onChange={(e) => sv("wants_photos", e.target.checked ? "yes" : "no")}
+                          className="mt-0.5 w-5 h-5 accent-arb-blue shrink-0"
+                        />
+                        <span className="text-sm font-medium text-gray-800 leading-snug">
+                          📸 Please send the free photos of our trip to this email
+                        </span>
+                      </label>
+                      <p className="text-xs text-gray-400 mt-1.5 ml-8">
+                        Up to two emails per group please
+                      </p>
+                    </div>
+                  )}
+                </div>
               )}
 
             {/* Under-18 notice on DOB/age */}

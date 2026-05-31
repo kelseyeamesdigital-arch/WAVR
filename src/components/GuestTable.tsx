@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera } from "lucide-react";
 import { deleteGuest } from "@/app/actions/delete";
 
 type WaiverField = {
@@ -89,6 +89,9 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                       Medical
                     </span>
                   )}
+                  {g.form_data?.wants_photos === "yes" && (
+                    <Camera size={13} className="shrink-0 text-arb-teal" title="Wants trip photos" />
+                  )}
                 </div>
                 <p className="text-xs text-zinc-500 truncate mt-0.5">{waiver?.title ?? "—"}</p>
               </div>
@@ -148,6 +151,11 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                     <div className="col-span-2 flex items-center gap-2 text-sm text-zinc-300">
                       <Mail size={13} className="text-zinc-500 shrink-0" />
                       <span className="truncate">{g.guest_email}</span>
+                      {g.form_data?.wants_photos === "yes" && (
+                        <span className="flex items-center gap-1 text-[10px] font-bold bg-arb-teal/20 text-arb-teal px-1.5 py-0.5 rounded-full shrink-0">
+                          <Camera size={9} /> Photos
+                        </span>
+                      )}
                     </div>
                   )}
                   {g.guest_age && (
