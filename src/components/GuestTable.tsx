@@ -4,13 +4,6 @@ import { useState, useTransition } from "react";
 import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera } from "lucide-react";
 import { deleteGuest } from "@/app/actions/delete";
 
-type WaiverField = {
-  id: string;
-  label: string;
-  type: string;
-  followUpLabel?: string;
-};
-
 type Guest = {
   id: string;
   guest_name: string;
@@ -22,7 +15,9 @@ type Guest = {
   form_data: Record<string, string> | null;
   trip_date: string | null;
   trip_time: string | null;
-  waiver: { title: string; fields: WaiverField[] } | { title: string; fields: WaiverField[] }[] | null;
+  has_medical: boolean | null;
+  photo_opt_in: boolean | null;
+  waiver: { title: string } | { title: string }[] | null;
 };
 
 function getWaiver(w: Guest["waiver"]) {
@@ -32,24 +27,15 @@ function getWaiver(w: Guest["waiver"]) {
 }
 
 function hasMedicalFlag(guest: Guest): boolean {
-  if (!guest.form_data) return false;
-  return Object.values(guest.form_data).includes("Yes");
+  return guest.has_medical === true;
 }
 
-function getMedicalDetails(guest: Guest): { question: string; answer: string }[] {
+function getMedicalDetails(guest: Guest): string[] {
   if (!guest.form_data) return [];
-  const waiver = getWaiver(guest.waiver);
-  const fields = waiver?.fields ?? [];
-  const details: { question: string; answer: string }[] = [];
-
-  for (const field of fields) {
-    if (field.type === "conditional" && guest.form_data[field.id] === "Yes") {
-      details.push({ question: field.label, answer: "Yes" });
-      const followUp = guest.form_data[`${field.id}_followup`];
-      if (followUp) details.push({ question: field.followUpLabel ?? "Details", answer: followUp });
-    }
-  }
-  return details;
+  return Object.entries(guest.form_data)
+    .filter(([key, val]) => val === "Yes" && key !== "wants_photos")
+    .map(([key]) => guest.form_data![`${key}_followup`])
+    .filter(Boolean) as string[];
 }
 
 export default function GuestTable({ guests }: { guests: Guest[] }) {
@@ -89,7 +75,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                       Medical
                     </span>
                   )}
-                  {g.form_data?.wants_photos === "yes" && (
+                  {g.photo_opt_in === true && (
                     <Camera size={13} className="shrink-0 text-arb-teal" />
                   )}
                 </div>
@@ -119,10 +105,8 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                       <AlertTriangle size={14} className="text-amber-400 shrink-0" />
                       <span className="text-xs font-bold text-amber-400 uppercase tracking-wide">Medical / Health Note</span>
                     </div>
-                    {medicalDetails.map((d, i) => (
-                      <p key={i} className="text-xs text-amber-200/80">
-                        <span className="font-semibold">{d.question}:</span> {d.answer}
-                      </p>
+                    {medicalDetails.map((detail, i) => (
+                      <p key={i} className="text-xs text-amber-200/80">{detail}</p>
                     ))}
                   </div>
                 )}
@@ -151,7 +135,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                     <div className="col-span-2 flex items-center gap-2 text-sm text-zinc-300">
                       <Mail size={13} className="text-zinc-500 shrink-0" />
                       <span className="truncate">{g.guest_email}</span>
-                      {g.form_data?.wants_photos === "yes" && (
+                      {g.photo_opt_in === true && (
                         <span className="flex items-center gap-1 text-[10px] font-bold bg-arb-teal/20 text-arb-teal px-1.5 py-0.5 rounded-full shrink-0">
                           <Camera size={9} /> Photos
                         </span>

@@ -459,6 +459,8 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
       guest_country: guestCountry,
       trip_date: tripDate || null,
       trip_time: tripTime || null,
+      has_medical: Object.values(values).includes("Yes"),
+      photo_opt_in: values["wants_photos"] === "yes",
       form_data: {
         ...values,
         dob: dobD && dobM && dobY ? `${dobY}-${dobM}-${dobD}` : undefined,

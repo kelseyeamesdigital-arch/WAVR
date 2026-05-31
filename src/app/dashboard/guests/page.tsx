@@ -3,6 +3,8 @@ import GuestTable from "@/components/GuestTable";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import GuestFilterBar from "@/components/GuestFilterBar";
 
+export const runtime = 'edge';
+
 export default async function GuestsPage({
   searchParams,
 }: {
@@ -14,7 +16,7 @@ export default async function GuestsPage({
 
   let query = supabase
     .from("submissions")
-    .select("id, guest_name, guest_email, guest_age, guest_country, created_at, signature_url, form_data, trip_date, trip_time, waiver:waivers(title, fields)")
+    .select("id, guest_name, guest_email, guest_age, guest_country, created_at, signature_url, form_data, trip_date, trip_time, has_medical, photo_opt_in, waiver:waivers(title)")
     .eq("operator_id", user!.id)
     .order("trip_date", { ascending: false })
     .order("created_at", { ascending: false });

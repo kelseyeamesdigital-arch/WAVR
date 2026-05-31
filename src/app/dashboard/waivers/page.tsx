@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Plus, ExternalLink, Users, Pencil } from "lucide-react";
 import DeleteWaiverButton from "@/components/DeleteWaiverButton";
 
+export const runtime = 'edge';
+
 export default async function WaiversPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
