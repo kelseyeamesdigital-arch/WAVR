@@ -88,6 +88,47 @@ function getGuestName(fields: Field[], values: Record<string, string>) {
   );
 }
 
+// ─── Offline queue ────────────────────────────────────────────────────────────
+
+const PENDING_KEY = "wavr_pending";
+
+type PendingSubmission = {
+  waiver_id: string;
+  operator_id: string;
+  guest_name: string;
+  guest_email: string | null;
+  guest_age: number | null;
+  guest_country: string | null;
+  form_data: Record<string, unknown>;
+  signature_url: string;
+  trip_date: string | null;
+  trip_time: string | null;
+  has_medical: boolean;
+  photo_opt_in: boolean;
+};
+
+function getPending(): PendingSubmission[] {
+  try { return JSON.parse(localStorage.getItem(PENDING_KEY) ?? "[]"); }
+  catch { return []; }
+}
+
+function queuePending(sub: PendingSubmission) {
+  localStorage.setItem(PENDING_KEY, JSON.stringify([...getPending(), sub]));
+}
+
+async function flushPending() {
+  const pending = getPending();
+  if (!pending.length) return;
+  const { createClient } = await import("@/lib/supabase/client");
+  const supabase = createClient();
+  const failed: PendingSubmission[] = [];
+  for (const sub of pending) {
+    const { error } = await supabase.from("submissions").insert(sub);
+    if (error) failed.push(sub);
+  }
+  localStorage.setItem(PENDING_KEY, JSON.stringify(failed));
+}
+
 // ─── Background ───────────────────────────────────────────────────────────────
 
 const BG = "linear-gradient(160deg, #062a3f 0%, #0e4a65 45%, #1E9FD4 100%)";
@@ -299,6 +340,10 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   const [view, setView] = useState<"wizard" | "success" | "alldone">("wizard");
   const [lastSigned, setLastSigned] = useState("");
 
+  // Offline state
+  const [isOnline, setIsOnline] = useState(true);
+  const [offlineQueued, setOfflineQueued] = useState(false);
+
   const timeSlots = waiver.trip_time_slots
     ? waiver.trip_time_slots.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
@@ -350,6 +395,20 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setStepIndex(prev);
     setError("");
   }
+
+  // Offline detection + flush any queued submissions from previous sessions
+  useEffect(() => {
+    setIsOnline(navigator.onLine);
+    flushPending();
+    const handleOnline = () => { setIsOnline(true); flushPending(); };
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Auto-unlock terms if content doesn't need scrolling
   useEffect(() => {
@@ -438,7 +497,6 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     }
 
     setSubmitting(true);
-    const supabase = createClient();
     const signatureDataUrl = sigRef.current!.toDataURL("image/png");
 
     const guestEmail =
@@ -450,7 +508,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
       values[waiver.fields.find((f) => f.label.toLowerCase().includes("country"))?.id ?? ""] ??
       null;
 
-    const { error } = await supabase.from("submissions").insert({
+    const submission: PendingSubmission = {
       waiver_id: waiver.id,
       operator_id: waiver.operator_id,
       guest_name: guestName || "Guest",
@@ -468,14 +526,38 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
         guardian_name: isMinor ? guardianName : undefined,
       },
       signature_url: signatureDataUrl,
-    });
+    };
+
+    // Offline — queue and show success immediately
+    if (!navigator.onLine) {
+      queuePending(submission);
+      setOfflineQueued(true);
+      setLastSigned(submission.guest_name);
+      setSignedGuests((p) => [...p, submission.guest_name]);
+      setView("success");
+      setSubmitting(false);
+      return;
+    }
+
+    const supabase = createClient();
+    const { error } = await supabase.from("submissions").insert(submission);
 
     if (error) {
-      setError(error.message);
+      // Network failure mid-request — queue for retry
+      if (!navigator.onLine || error.message.includes("fetch") || error.message.includes("network")) {
+        queuePending(submission);
+        setOfflineQueued(true);
+        setLastSigned(submission.guest_name);
+        setSignedGuests((p) => [...p, submission.guest_name]);
+        setView("success");
+      } else {
+        setError(error.message);
+      }
       setSubmitting(false);
     } else {
-      setLastSigned(guestName || "Guest");
-      setSignedGuests((p) => [...p, guestName || "Guest"]);
+      setOfflineQueued(false);
+      setLastSigned(submission.guest_name);
+      setSignedGuests((p) => [...p, submission.guest_name]);
       setView("success");
     }
   }
@@ -492,6 +574,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setTermsScrolled(false);
     setError("");
     setSubmitting(false);
+    setOfflineQueued(false);
     sigRef.current?.clear();
     // Skip trip step for subsequent group members
     const startStep = keepTrip && timeSlots.length > 0 ? 2 : 0;
@@ -499,6 +582,14 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setView("wizard");
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  // ─── OFFLINE BANNER ───────────────────────────────────────────────────────
+
+  const OfflineBanner = !isOnline ? (
+    <div className="fixed top-0 left-0 right-0 z-50 bg-amber-500 text-white text-xs text-center py-2 font-semibold tracking-wide">
+      📡 No signal — waivers will sync automatically when you reconnect
+    </div>
+  ) : null;
 
   // ─── ALL DONE ──────────────────────────────────────────────────────────────
 
@@ -511,6 +602,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   if (view === "success") {
     return (
       <FullScreen>
+        {OfflineBanner}
         <div className="flex-1 flex flex-col justify-end">
           <Card className="!overflow-visible">
             <div className="p-7">
@@ -520,7 +612,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                   className="text-2xl font-bold text-arb-green mb-1"
                   style={{ fontFamily: "Oswald, sans-serif" }}
                 >
-                  SIGNED!
+                  {offlineQueued ? "SAVED!" : "SIGNED!"}
                 </h2>
                 <p className="text-gray-500 text-sm">
                   <span className="font-semibold text-gray-700">{lastSigned}</span> is all
@@ -529,6 +621,11 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                     <span className="text-amber-600">Signed by a guardian.</span>
                   )}
                 </p>
+                {offlineQueued && (
+                  <p className="text-xs text-amber-600 mt-2 font-medium">
+                    📡 No signal — will sync when you reconnect
+                  </p>
+                )}
               </div>
 
               {signedGuests.length > 0 && (
@@ -587,6 +684,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   if (currentStep.type === "welcome") {
     return (
       <div className="min-h-screen flex flex-col">
+        {OfflineBanner}
         {/* Hero image */}
         <div className="flex-1 relative min-h-[45vh]">
           {waiver.cover_image_url ? (
