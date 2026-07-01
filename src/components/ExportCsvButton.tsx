@@ -34,7 +34,7 @@ export default function ExportCsvButton() {
     <button
       onClick={handleExport}
       disabled={loading}
-      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-arb-blue hover:bg-arb-blue-dark disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-wavr-blue hover:bg-wavr-blue-dark disabled:opacity-50 text-white text-sm font-semibold transition-colors"
     >
       <Download size={15} />
       {loading ? "Exporting…" : "Export CSV"}

@@ -92,7 +92,7 @@ function SortableField({
           <input
             value={field.label}
             onChange={(e) => updateField(field.id, { label: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
           />
         </div>
         <div>
@@ -100,7 +100,7 @@ function SortableField({
           <select
             value={field.type}
             onChange={(e) => updateField(field.id, { type: e.target.value as FieldType })}
-            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+            className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
           >
             {FIELD_TYPES.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
@@ -114,7 +114,7 @@ function SortableField({
               value={field.options ?? ""}
               onChange={(e) => updateField(field.id, { options: e.target.value })}
               placeholder="Option A, Option B, Option C"
-              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
             />
           </div>
         )}
@@ -125,7 +125,7 @@ function SortableField({
               value={field.followUpLabel ?? ""}
               onChange={(e) => updateField(field.id, { followUpLabel: e.target.value })}
               placeholder="e.g. Please describe your medical condition"
-              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+              className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
             />
           </div>
         )}
@@ -134,7 +134,7 @@ function SortableField({
             type="checkbox"
             checked={field.required}
             onChange={(e) => updateField(field.id, { required: e.target.checked })}
-            className="accent-arb-blue"
+            className="accent-wavr-blue"
             id={`req-${field.id}`}
           />
           <label htmlFor={`req-${field.id}`} className="text-xs text-zinc-400">Required</label>
@@ -265,14 +265,14 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="e.g. Bled Canyoning Waiver"
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
             URL slug <span className="text-zinc-500 font-normal">(used in the sign link)</span>
           </label>
-          <div className="flex items-center rounded-lg bg-zinc-900 border border-zinc-700 overflow-hidden focus-within:ring-2 focus-within:ring-arb-blue">
+          <div className="flex items-center rounded-lg bg-zinc-900 border border-zinc-700 overflow-hidden focus-within:ring-2 focus-within:ring-wavr-blue">
             <span className="px-3 py-2.5 text-zinc-500 text-sm border-r border-zinc-700 select-none whitespace-nowrap">/sign/</span>
             <input
               value={slug}
@@ -290,7 +290,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             value={coverImageUrl}
             onChange={(e) => setCoverImageUrl(e.target.value)}
             placeholder="https://example.com/your-activity-photo.jpg"
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent text-sm"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent text-sm"
           />
           {coverImageUrl && (
             <img src={coverImageUrl} alt="Preview" className="mt-2 h-24 w-full object-cover rounded-lg opacity-80" />
@@ -304,12 +304,12 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             value={tripTimeSlots}
             onChange={(e) => setTripTimeSlots(e.target.value)}
             placeholder="8:00 AM,1:00 PM"
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent text-sm"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent text-sm"
           />
           {tripTimeSlots && (
             <div className="mt-2 flex gap-2 flex-wrap">
               {tripTimeSlots.split(",").filter(Boolean).map((s) => (
-                <span key={s} className="text-xs bg-arb-blue/20 text-arb-blue-light px-2 py-1 rounded-full">{s.trim()}</span>
+                <span key={s} className="text-xs bg-wavr-blue/20 text-wavr-blue-light px-2 py-1 rounded-full">{s.trim()}</span>
               ))}
             </div>
           )}
@@ -320,7 +320,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             value={bodyText}
             onChange={(e) => setBodyText(e.target.value)}
             rows={5}
-            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent resize-none text-sm"
+            className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent resize-none text-sm"
           />
         </div>
       </div>
@@ -330,7 +330,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
           <h2 className="text-sm font-semibold text-zinc-300">Guest fields</h2>
           <button
             onClick={addField}
-            className="flex items-center gap-1.5 text-xs text-arb-blue-light hover:text-arb-teal transition"
+            className="flex items-center gap-1.5 text-xs text-wavr-blue-light hover:text-wavr-teal transition"
           >
             <Plus size={14} />
             Add field
@@ -358,7 +358,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
       <button
         onClick={handleSave}
         disabled={saving}
-        className="w-full py-3 rounded-xl bg-arb-blue hover:bg-arb-blue-light text-white font-semibold transition disabled:opacity-50"
+        className="w-full py-3 rounded-xl bg-wavr-blue hover:bg-wavr-blue-light text-white font-semibold transition disabled:opacity-50"
       >
         {saving ? "Saving…" : initial?.id ? "Save changes" : "Save waiver"}
       </button>

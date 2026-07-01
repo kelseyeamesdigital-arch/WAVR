@@ -76,7 +76,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                     </span>
                   )}
                   {g.photo_opt_in === true && (
-                    <Camera size={13} className="shrink-0 text-arb-teal" />
+                    <Camera size={13} className="shrink-0 text-wavr-teal" />
                   )}
                 </div>
                 <p className="text-xs text-zinc-500 truncate mt-0.5">{waiver?.title ?? "—"}</p>
@@ -90,7 +90,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                     : new Date(g.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
                   {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </div>
-                {g.trip_time && <span className="text-[10px] text-arb-blue-light">{g.trip_time}</span>}
+                {g.trip_time && <span className="text-[10px] text-wavr-blue-light">{g.trip_time}</span>}
               </div>
             </button>
 
@@ -116,13 +116,13 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                   <div className="flex items-center gap-3 bg-zinc-700/30 rounded-lg px-3 py-2">
                     {g.trip_date && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <Calendar size={12} className="text-arb-blue-light" />
+                        <Calendar size={12} className="text-wavr-blue-light" />
                         {new Date(g.trip_date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
                       </div>
                     )}
                     {g.trip_time && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <Clock size={12} className="text-arb-blue-light" />
+                        <Clock size={12} className="text-wavr-blue-light" />
                         {g.trip_time}
                       </div>
                     )}
@@ -136,7 +136,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                       <Mail size={13} className="text-zinc-500 shrink-0" />
                       <span className="truncate">{g.guest_email}</span>
                       {g.photo_opt_in === true && (
-                        <span className="flex items-center gap-1 text-[10px] font-bold bg-arb-teal/20 text-arb-teal px-1.5 py-0.5 rounded-full shrink-0">
+                        <span className="flex items-center gap-1 text-[10px] font-bold bg-wavr-teal/20 text-wavr-teal px-1.5 py-0.5 rounded-full shrink-0">
                           <Camera size={9} /> Photos
                         </span>
                       )}

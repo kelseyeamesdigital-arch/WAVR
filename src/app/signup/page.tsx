@@ -36,13 +36,8 @@ export default function SignupPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-9 h-9 rounded-lg bg-arb-blue flex items-center justify-center">
-              <span className="text-white font-bold text-sm" style={{ fontFamily: "Oswald, sans-serif" }}>ARB</span>
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "Oswald, sans-serif", letterSpacing: "0.05em" }}>ADVENTURE RAFTING BLED</h1>
-          <p className="mt-1 text-arb-teal text-xs tracking-widest">CREATE YOUR ACCOUNT</p>
+          <h1 className="text-4xl font-black text-white tracking-tight mb-1" style={{ fontFamily: "Oswald, sans-serif" }}>WAVR</h1>
+          <p className="text-wavr-teal text-xs tracking-widest">CREATE YOUR ACCOUNT</p>
         </div>
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
@@ -52,7 +47,7 @@ export default function SignupPage() {
               required
               value={businessName}
               onChange={(e) => setBusinessName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
               placeholder="Kiwi Adventures Ltd"
             />
           </div>
@@ -63,7 +58,7 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
               placeholder="you@company.com"
             />
           </div>
@@ -75,7 +70,7 @@ export default function SignupPage() {
               minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+              className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
               placeholder="Min. 8 characters"
             />
           </div>
@@ -83,14 +78,14 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-lg bg-arb-blue hover:bg-arb-blue-light text-white font-semibold transition disabled:opacity-50"
+            className="w-full py-2.5 px-4 rounded-lg bg-wavr-blue hover:bg-wavr-blue-light text-white font-semibold transition disabled:opacity-50"
           >
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-zinc-500">
           Already have an account?{" "}
-          <Link href="/login" className="text-arb-blue-light hover:text-arb-teal">
+          <Link href="/login" className="text-wavr-blue-light hover:text-wavr-teal">
             Sign in
           </Link>
         </p>

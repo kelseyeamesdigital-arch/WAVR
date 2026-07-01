@@ -11,12 +11,12 @@
   --color-foreground: var(--foreground);
 
   /* ARB Brand Colors */
-  --color-arb-blue: #1E9FD4;
-  --color-arb-blue-dark: #1787b5;
-  --color-arb-blue-light: #5BBFDF;
-  --color-arb-teal: #5CC8C8;
-  --color-arb-green: #3D5433;
-  --color-arb-green-light: #4e6b42;
+  --color-wavr-blue: #1E9FD4;
+  --color-wavr-blue-dark: #1787b5;
+  --color-wavr-blue-light: #5BBFDF;
+  --color-wavr-teal: #5CC8C8;
+  --color-wavr-green: #3D5433;
+  --color-wavr-green-light: #4e6b42;
 }
 
 body {

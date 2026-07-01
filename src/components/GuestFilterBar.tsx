@@ -33,7 +33,7 @@ export default function GuestFilterBar({ totalCount }: { totalCount: number }) {
           defaultValue={q}
           placeholder="Search by name…"
           onChange={(e) => update("q", e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-arb-blue focus:border-transparent"
+          className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
         />
       </div>
 
@@ -42,13 +42,13 @@ export default function GuestFilterBar({ totalCount }: { totalCount: number }) {
         <CalendarDays size={15} className="text-zinc-500 shrink-0" />
         <button
           onClick={() => update("date", today)}
-          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === today ? "bg-arb-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === today ? "bg-wavr-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
         >
           Today
         </button>
         <button
           onClick={() => update("date", tomorrow)}
-          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === tomorrow ? "bg-arb-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === tomorrow ? "bg-wavr-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
         >
           Tomorrow
         </button>
@@ -56,7 +56,7 @@ export default function GuestFilterBar({ totalCount }: { totalCount: number }) {
           type="date"
           value={date}
           onChange={(e) => update("date", e.target.value)}
-          className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-arb-blue"
+          className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-wavr-blue"
         />
         {hasFilter && (
           <button onClick={clear} className="flex items-center gap-1 text-xs text-zinc-500 hover:text-white transition">

@@ -12,7 +12,7 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
 
   const { data: waiver } = await supabase
     .from("waivers")
-    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
+    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, operator:profiles(business_name, logo_url, website)")
     .eq(isUuid ? "id" : "slug", id)
     .eq("is_active", true)
     .maybeSingle();

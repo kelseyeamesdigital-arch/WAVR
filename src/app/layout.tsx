@@ -3,8 +3,8 @@ import "./globals.css";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
 export const metadata: Metadata = {
-  title: "WAVR — Adventure Rafting Bled",
-  description: "Digital waivers for Adventure Rafting Bled guests.",
+  title: "WAVR — Digital Waivers for Adventure Tourism",
+  description: "Digital waiver software for adventure tourism operators.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

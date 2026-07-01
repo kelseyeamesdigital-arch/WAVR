@@ -16,6 +16,12 @@ type Field = {
   followUpLabel?: string;
 };
 
+type Operator = {
+  business_name: string;
+  logo_url: string | null;
+  website: string | null;
+};
+
 type Waiver = {
   id: string;
   title: string;
@@ -24,6 +30,7 @@ type Waiver = {
   operator_id: string;
   cover_image_url?: string | null;
   trip_time_slots?: string | null;
+  operator?: Operator | Operator[] | null;
 };
 
 type Step =
@@ -86,6 +93,11 @@ function getGuestName(fields: Field[], values: Record<string, string>) {
     values[fields.find((f) => f.type === "text" && f.label.toLowerCase().includes("name"))?.id ?? ""] ??
     ""
   );
+}
+
+function getOperator(op: Operator | Operator[] | null | undefined): Operator | null {
+  if (!op) return null;
+  return Array.isArray(op) ? (op[0] ?? null) : op;
 }
 
 // ─── Offline queue ────────────────────────────────────────────────────────────
@@ -235,12 +247,12 @@ function RadioOption({
       type="button"
       onClick={onClick}
       className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl border-2 text-left transition ${
-        selected ? "border-arb-blue bg-arb-blue/5" : "border-gray-200 hover:border-arb-blue/40"
+        selected ? "border-wavr-blue bg-wavr-blue/5" : "border-gray-200 hover:border-wavr-blue/40"
       }`}
     >
       <div
         className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition ${
-          selected ? "border-arb-blue bg-arb-blue" : "border-gray-400"
+          selected ? "border-wavr-blue bg-wavr-blue" : "border-gray-400"
         }`}
       >
         {selected && <div className="w-2 h-2 rounded-full bg-white" />}
@@ -273,8 +285,8 @@ function AllDoneScreen({ signedGuests, onReset }: { signedGuests: string[]; onRe
     <FullScreen>
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-          <CheckCircle size={56} className="text-arb-teal mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-arb-green mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+          <CheckCircle size={56} className="text-wavr-teal mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-wavr-green mb-2" style={{ fontFamily: "Oswald, sans-serif" }}>
             ALL SIGNED IN!
           </h2>
           <p className="text-gray-500 text-sm mb-4">
@@ -286,7 +298,7 @@ function AllDoneScreen({ signedGuests, onReset }: { signedGuests: string[]; onRe
             <div className="bg-gray-50 rounded-2xl border border-gray-200 p-4 mb-4 text-left">
               {signedGuests.map((name, i) => (
                 <div key={i} className="flex items-center gap-2 py-1.5">
-                  <CheckCircle size={14} className="text-arb-teal shrink-0" />
+                  <CheckCircle size={14} className="text-wavr-teal shrink-0" />
                   <span className="text-sm text-gray-700">{name}</span>
                 </div>
               ))}
@@ -296,20 +308,20 @@ function AllDoneScreen({ signedGuests, onReset }: { signedGuests: string[]; onRe
 
           {/* Countdown ring */}
           <div className="mt-5 flex flex-col items-center gap-2">
-            <div className="w-12 h-12 rounded-full border-4 border-arb-teal/30 flex items-center justify-center">
-              <span className="text-lg font-bold text-arb-teal">{countdown}</span>
+            <div className="w-12 h-12 rounded-full border-4 border-wavr-teal/30 flex items-center justify-center">
+              <span className="text-lg font-bold text-wavr-teal">{countdown}</span>
             </div>
             <p className="text-xs text-gray-400">Returning to check-in…</p>
           </div>
 
           <button
             onClick={onReset}
-            className="mt-4 text-xs text-arb-blue underline"
+            className="mt-4 text-xs text-wavr-blue underline"
           >
             Start now
           </button>
 
-          <p className="text-xs text-gray-300 mt-4">Adventure Rafting Bled · adventure-rafting.com</p>
+          <p className="text-xs text-gray-300 mt-4">{bizName} · {bizWebsite}</p>
         </div>
       </div>
     </FullScreen>
@@ -321,6 +333,11 @@ function AllDoneScreen({ signedGuests, onReset }: { signedGuests: string[]; onRe
 export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   const sigRef = useRef<SignatureCanvas>(null);
   const termsRef = useRef<HTMLDivElement>(null);
+
+  const operator = getOperator(waiver.operator);
+  const bizName = operator?.business_name || "WAVR";
+  const bizWebsite = operator?.website || "wavr.app";
+  const bizLogo = operator?.logo_url || null;
 
   const [values, setValues] = useState<Record<string, string>>({});
   const [tripDate, setTripDate] = useState(new Date().toISOString().slice(0, 10));
@@ -607,9 +624,9 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
           <Card className="!overflow-visible">
             <div className="p-7">
               <div className="text-center mb-7">
-                <CheckCircle size={52} className="text-arb-teal mx-auto mb-3" />
+                <CheckCircle size={52} className="text-wavr-teal mx-auto mb-3" />
                 <h2
-                  className="text-2xl font-bold text-arb-green mb-1"
+                  className="text-2xl font-bold text-wavr-green mb-1"
                   style={{ fontFamily: "Oswald, sans-serif" }}
                 >
                   {offlineQueued ? "SAVED!" : "SIGNED!"}
@@ -635,7 +652,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                   </p>
                   {signedGuests.map((name, i) => (
                     <div key={i} className="flex items-center gap-2 py-1">
-                      <CheckCircle size={13} className="text-arb-teal shrink-0" />
+                      <CheckCircle size={13} className="text-wavr-teal shrink-0" />
                       <span className="text-sm text-gray-700">{name}</span>
                     </div>
                   ))}
@@ -658,7 +675,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                 </button>
                 <button
                   onClick={() => setView("alldone")}
-                  className="w-full py-4 rounded-2xl font-bold border-2 border-arb-green text-arb-green flex items-center justify-center gap-2 hover:bg-arb-green hover:text-white transition"
+                  className="w-full py-4 rounded-2xl font-bold border-2 border-wavr-green text-wavr-green flex items-center justify-center gap-2 hover:bg-wavr-green hover:text-white transition"
                   style={{
                     fontFamily: "Oswald, sans-serif",
                     letterSpacing: "0.06em",
@@ -670,7 +687,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                 </button>
               </div>
               <p className="text-center text-xs text-gray-300 mt-5">
-                Adventure Rafting Bled · adventure-rafting.com
+                {bizName} · {bizWebsite}
               </p>
             </div>
           </Card>
@@ -701,13 +718,13 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
 
         {/* Card slides up from bottom */}
         <div className="bg-white rounded-t-3xl shadow-2xl px-7 pt-7 pb-10 -mt-6 relative z-10">
-          <img
-            src="/logo-full.png"
-            alt="Adventure Rafting Bled"
-            className="h-14 mx-auto mb-5"
-          />
+          {bizLogo ? (
+            <img src={bizLogo} alt={bizName} className="h-14 mx-auto mb-5 object-contain" />
+          ) : (
+            <p className="text-xl font-black text-gray-900 mb-5 text-center tracking-tight" style={{ fontFamily: "Oswald, sans-serif" }}>{bizName}</p>
+          )}
           {signedGuests.length > 0 && (
-            <p className="text-sm text-arb-blue font-semibold mb-2 text-center">
+            <p className="text-sm text-wavr-blue font-semibold mb-2 text-center">
               Person {signedGuests.length + 1} in your group
             </p>
           )}
@@ -722,7 +739,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
             <span className="text-gray-400 text-sm">First, let&apos;s get you checked in.</span>
           </p>
           <NextBtn onClick={advance} label="GET STARTED!" />
-          <p className="text-xs text-gray-300 mt-5 text-center">adventure-rafting.com</p>
+          <p className="text-xs text-gray-300 mt-5 text-center">{bizWebsite}</p>
         </div>
       </div>
     );
@@ -737,7 +754,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
         <div className="flex-1 flex flex-col justify-end">
           <Card>
             <div className="p-6">
-              <p className="text-xs font-bold text-arb-teal tracking-widest uppercase mb-1">Your Trip</p>
+              <p className="text-xs font-bold text-wavr-teal tracking-widest uppercase mb-1">Your Trip</p>
               <h2 className="text-2xl font-bold text-gray-900 mb-6" style={{ fontFamily: "Oswald, sans-serif" }}>
                 WHEN IS YOUR TRIP?
               </h2>
@@ -749,7 +766,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                   type="date"
                   value={tripDate}
                   onChange={(e) => setTripDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 text-base focus:outline-none focus:border-arb-blue"
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 text-base focus:outline-none focus:border-wavr-blue"
                 />
               </div>
 
@@ -867,7 +884,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                   placeholder="Parent / Guardian full name *"
                   value={guardianName}
                   onChange={(e) => setGuardianName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm focus:outline-none focus:border-arb-blue"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 text-gray-900 text-sm focus:outline-none focus:border-wavr-blue"
                 />
               </div>
             )}
@@ -960,7 +977,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                 value={values[`${field.id}_followup`] ?? ""}
                 onChange={(e) => sv(`${field.id}_followup`, e.target.value)}
                 placeholder="Please describe..."
-                className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 focus:outline-none focus:border-arb-blue resize-none text-base"
+                className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 focus:outline-none focus:border-wavr-blue resize-none text-base"
               />
             )}
 
@@ -973,7 +990,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                     <span className="text-xs font-semibold text-gray-500">Month</span>
                     <span className="text-xs font-semibold text-gray-500">Year</span>
                   </div>
-                  <div className="flex items-center border-2 border-gray-200 rounded-2xl overflow-hidden focus-within:border-arb-blue transition">
+                  <div className="flex items-center border-2 border-gray-200 rounded-2xl overflow-hidden focus-within:border-wavr-blue transition">
                     <input
                       type="number"
                       placeholder="DD"
@@ -1008,7 +1025,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                 {dobFormatted && (
                   <p className="text-center text-sm text-gray-600">
                     Your entry:{" "}
-                    <span className="font-bold text-arb-blue">{dobFormatted}</span>
+                    <span className="font-bold text-wavr-blue">{dobFormatted}</span>
                     {dobAgeDisplay !== null && (
                       <span className="text-gray-400"> · {dobAgeDisplay} years old</span>
                     )}
@@ -1058,17 +1075,17 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                         ? "0"
                         : ""
                     }
-                    className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 text-xl text-gray-900 focus:outline-none focus:border-arb-blue transition"
+                    className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 text-xl text-gray-900 focus:outline-none focus:border-wavr-blue transition"
                   />
                   {/* Photo opt-in — only on email field */}
                   {field.type === "email" && (
-                    <div className="bg-arb-blue/5 border border-arb-blue/20 rounded-2xl px-4 py-3">
+                    <div className="bg-wavr-blue/5 border border-wavr-blue/20 rounded-2xl px-4 py-3">
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={values["wants_photos"] === "yes"}
                           onChange={(e) => sv("wants_photos", e.target.checked ? "yes" : "no")}
-                          className="mt-0.5 w-5 h-5 accent-arb-blue shrink-0"
+                          className="mt-0.5 w-5 h-5 accent-wavr-blue shrink-0"
                         />
                         <span className="text-sm font-medium text-gray-800 leading-snug">
                           📸 Please send the free photos of our trip to this email
