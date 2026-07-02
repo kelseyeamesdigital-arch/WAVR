@@ -264,7 +264,7 @@ function RadioOption({
 
 // ─── All Done Screen (auto-returns to welcome) ───────────────────────────────
 
-function AllDoneScreen({ signedGuests, onReset }: { signedGuests: string[]; onReset: () => void }) {
+function AllDoneScreen({ signedGuests, onReset, bizName, bizWebsite }: { signedGuests: string[]; onReset: () => void; bizName: string; bizWebsite: string }) {
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
@@ -611,7 +611,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   // ─── ALL DONE ──────────────────────────────────────────────────────────────
 
   if (view === "alldone") {
-    return <AllDoneScreen signedGuests={signedGuests} onReset={resetWizard} />;
+    return <AllDoneScreen signedGuests={signedGuests} onReset={resetWizard} bizName={bizName} bizWebsite={bizWebsite} />;
   }
 
   // ─── SUCCESS ───────────────────────────────────────────────────────────────
