@@ -12,7 +12,8 @@ export default function WaiverQrModal({ slug, waiverId, title }: Props) {
   const qrRef = useRef<SVGSVGElement>(null);
 
   const signId = slug ?? waiverId;
-  const signUrl = `https://wavr.app/sign/${signId}`;
+  const base = typeof window !== "undefined" ? window.location.origin : "https://wavr.app";
+  const signUrl = `${base}/sign/${signId}`;
 
   function copyLink() {
     navigator.clipboard.writeText(signUrl);
