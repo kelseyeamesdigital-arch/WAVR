@@ -8,14 +8,22 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const supabase = await createClient();
 
-  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-
-  const { data: waiver } = await supabase
+  // Try slug first, fall back to UUID
+  let { data: waiver } = await supabase
     .from("waivers")
     .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
-    .eq(isUuid ? "id" : "slug", id)
+    .eq("slug", id)
     .eq("is_active", true)
     .maybeSingle();
+
+  if (!waiver) {
+    ({ data: waiver } = await supabase
+      .from("waivers")
+      .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
+      .eq("id", id)
+      .eq("is_active", true)
+      .maybeSingle());
+  }
 
   if (!waiver) notFound();
 
