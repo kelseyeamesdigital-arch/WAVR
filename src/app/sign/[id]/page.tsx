@@ -12,12 +12,18 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
 
   const { data: waiver } = await supabase
     .from("waivers")
-    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, operator:profiles(business_name, logo_url, website)")
+    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
     .eq(isUuid ? "id" : "slug", id)
     .eq("is_active", true)
     .maybeSingle();
 
   if (!waiver) notFound();
 
-  return <WaiverWizard waiver={waiver} />;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("business_name, logo_url, website")
+    .eq("id", waiver.operator_id)
+    .maybeSingle();
+
+  return <WaiverWizard waiver={{ ...waiver, operator: profile }} />;
 }
