@@ -765,8 +765,10 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                 <input
                   type="date"
                   value={tripDate}
+                  min={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => setTripDate(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 text-base focus:outline-none focus:border-wavr-blue"
+                  className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 text-base focus:outline-none focus:border-wavr-blue appearance-none"
+                  style={{ colorScheme: "light" }}
                 />
               </div>
 
