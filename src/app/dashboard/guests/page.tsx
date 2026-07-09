@@ -8,9 +8,9 @@ export const runtime = 'edge';
 export default async function GuestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; date?: string }>;
+  searchParams: Promise<{ q?: string; date?: string; time?: string; medical?: string; age?: string }>;
 }) {
-  const { q, date } = await searchParams;
+  const { q, date, time, medical, age } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -23,8 +23,22 @@ export default async function GuestsPage({
 
   if (q) query = query.ilike("guest_name", `%${q}%`);
   if (date) query = query.eq("trip_date", date);
+  if (time) query = query.eq("trip_time", time);
+  if (medical === "yes") query = query.eq("has_medical", true);
+  if (medical === "no") query = query.or("has_medical.eq.false,has_medical.is.null");
+  if (age === "u18") query = query.lt("guest_age", 18);
+  if (age === "18plus") query = query.gte("guest_age", 18);
 
-  const { data: guests } = await query;
+  // Distinct time slots for the time dropdown (scoped to the selected day if one is set)
+  let timeQuery = supabase
+    .from("submissions")
+    .select("trip_time")
+    .eq("operator_id", user!.id)
+    .not("trip_time", "is", null);
+  if (date) timeQuery = timeQuery.eq("trip_date", date);
+
+  const [{ data: guests }, { data: timeRows }] = await Promise.all([query, timeQuery]);
+  const timeOptions = [...new Set((timeRows ?? []).map((r) => r.trip_time as string).filter(Boolean))].sort();
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
@@ -33,7 +47,7 @@ export default async function GuestsPage({
         <ExportCsvButton />
       </div>
 
-      <GuestFilterBar totalCount={guests?.length ?? 0} />
+      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} />
       <GuestTable guests={guests ?? []} />
     </div>
   );
