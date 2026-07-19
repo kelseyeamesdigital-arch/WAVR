@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
+import { cache } from "react";
+import type { Metadata } from "next";
 import WaiverWizard from "@/components/WaiverWizard";
 
 export const runtime = 'edge';
 
-export default async function SignPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+// Shared by generateMetadata and the page — cache() dedupes so we only hit the DB once per request
+const getSignData = cache(async (id: string) => {
   const supabase = await createClient();
 
   // Try slug first, fall back to UUID
@@ -25,7 +27,7 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
       .maybeSingle());
   }
 
-  if (!waiver) notFound();
+  if (!waiver) return null;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -33,5 +35,46 @@ export default async function SignPage({ params }: { params: Promise<{ id: strin
     .eq("id", waiver.operator_id)
     .maybeSingle();
 
-  return <WaiverWizard waiver={{ ...waiver, operator: profile }} />;
+  return { waiver, profile };
+});
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getSignData(id);
+  if (!data) return { title: "Waiver not found" };
+
+  const { waiver, profile } = data;
+  const biz = profile?.business_name;
+  const title = biz ? `${waiver.title} — ${biz}` : waiver.title;
+  const description = biz
+    ? `Sign your ${biz} waiver online — it only takes a minute.`
+    : "Sign your waiver online — it only takes a minute.";
+  const image = waiver.cover_image_url || profile?.logo_url || null;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      ...(biz ? { siteName: biz } : {}),
+      ...(image ? { images: [image] } : {}),
+    },
+    twitter: {
+      card: waiver.cover_image_url ? "summary_large_image" : "summary",
+      title,
+      description,
+      ...(image ? { images: [image] } : {}),
+    },
+  };
+}
+
+export default async function SignPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const data = await getSignData(id);
+
+  if (!data) notFound();
+
+  return <WaiverWizard waiver={{ ...data.waiver, operator: data.profile }} />;
 }
