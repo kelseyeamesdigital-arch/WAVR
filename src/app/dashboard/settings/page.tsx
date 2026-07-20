@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import ProfileSettingsForm from "@/components/ProfileSettingsForm";
+import ChangePasswordForm from "@/components/ChangePasswordForm";
 
 export const runtime = 'edge';
 
@@ -20,6 +21,9 @@ export default async function SettingsPage() {
         userId={user!.id}
         initial={profile ?? { business_name: "", logo_url: null, website: null, address: null, phone: null, email: null, primary_color: null }}
       />
+      <div className="mt-5">
+        <ChangePasswordForm />
+      </div>
     </div>
   );
 }
