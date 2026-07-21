@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import GuestTable from "@/components/GuestTable";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import GuestFilterBar from "@/components/GuestFilterBar";
@@ -11,8 +11,7 @@ export default async function GuestsPage({
   searchParams: Promise<{ q?: string; date?: string; time?: string; medical?: string; age?: string; waiver?: string }>;
 }) {
   const { q, date, time, medical, age, waiver } = await searchParams;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 
   let query = supabase
     .from("submissions")

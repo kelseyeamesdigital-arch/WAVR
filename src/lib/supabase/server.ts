@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -22,3 +23,22 @@ export async function createClient() {
     }
   );
 }
+
+// Cookieless anon client for PUBLIC reads (guest sign pages). No cookies() call,
+// so pages using it can be statically cached / revalidated instead of forced dynamic.
+export function createPublicClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll() { return []; }, setAll() {} } }
+  );
+}
+
+// Request-deduped current user. Wrapping in cache() means the layout, page, and
+// any child server components share ONE getUser() network call per render instead
+// of each making their own round-trip to the Supabase auth server.
+export const getCurrentUser = cache(async () => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+});

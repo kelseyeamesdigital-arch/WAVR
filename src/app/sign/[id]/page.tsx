@@ -1,14 +1,16 @@
-import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import type { Metadata } from "next";
 import WaiverWizard from "@/components/WaiverWizard";
 
-export const runtime = 'edge';
+// Public page — revalidate the cached HTML every 5 min so guest loads are served
+// from the CDN worldwide instead of each hitting the database in Ireland.
+export const revalidate = 300;
 
 // Shared by generateMetadata and the page — cache() dedupes so we only hit the DB once per request
 const getSignData = cache(async (id: string) => {
-  const supabase = await createClient();
+  const supabase = createPublicClient();
 
   // Try slug first, fall back to UUID
   let { data: waiver } = await supabase

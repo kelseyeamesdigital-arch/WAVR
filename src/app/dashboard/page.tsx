@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import { FileText, Users, PenLine, AlertTriangle } from "lucide-react";
 
@@ -31,8 +31,7 @@ export default function DashboardPage() {
 }
 
 async function StatsCards() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 
   const [{ count: waiverCount }, { count: guestCount }] = await Promise.all([
     supabase.from("waivers").select("*", { count: "exact", head: true }).eq("operator_id", user!.id),
@@ -60,8 +59,7 @@ async function StatsCards() {
 }
 
 async function RecentSignIns() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 
   const { data: recentGuests } = await supabase
     .from("submissions")

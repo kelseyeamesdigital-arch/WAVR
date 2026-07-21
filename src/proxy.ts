@@ -2,6 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Guest sign pages are public — skip the auth-server round-trip entirely.
+  // (This runs on every request, so avoiding getUser() here makes every guest
+  // waiver load one network trip faster.)
+  if (pathname.startsWith("/sign/")) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -29,13 +38,10 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
-  // Public paths: login, signup, and guest waiver signing
+  // Public paths: login and signup (guest /sign/ pages already returned above)
   const isPublic =
     pathname.startsWith("/login") ||
-    pathname.startsWith("/signup") ||
-    pathname.startsWith("/sign/");
+    pathname.startsWith("/signup");
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL("/login", request.url));
