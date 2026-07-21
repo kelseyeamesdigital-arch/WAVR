@@ -8,9 +8,9 @@ export const runtime = 'edge';
 export default async function GuestsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; date?: string; time?: string; medical?: string; age?: string }>;
+  searchParams: Promise<{ q?: string; date?: string; time?: string; medical?: string; age?: string; waiver?: string }>;
 }) {
-  const { q, date, time, medical, age } = await searchParams;
+  const { q, date, time, medical, age, waiver } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -24,6 +24,7 @@ export default async function GuestsPage({
   if (q) query = query.ilike("guest_name", `%${q}%`);
   if (date) query = query.eq("trip_date", date);
   if (time) query = query.eq("trip_time", time);
+  if (waiver) query = query.eq("waiver_id", waiver);
   if (medical === "yes") query = query.eq("has_medical", true);
   if (medical === "no") query = query.or("has_medical.eq.false,has_medical.is.null");
   if (age === "u18") query = query.lt("guest_age", 18);
@@ -37,8 +38,16 @@ export default async function GuestsPage({
     .not("trip_time", "is", null);
   if (date) timeQuery = timeQuery.eq("trip_date", date);
 
-  const [{ data: guests }, { data: timeRows }] = await Promise.all([query, timeQuery]);
+  // The operator's waivers, for the waiver dropdown
+  const waiverQuery = supabase
+    .from("waivers")
+    .select("id, title")
+    .eq("operator_id", user!.id)
+    .order("title");
+
+  const [{ data: guests }, { data: timeRows }, { data: waiverRows }] = await Promise.all([query, timeQuery, waiverQuery]);
   const timeOptions = [...new Set((timeRows ?? []).map((r) => r.trip_time as string).filter(Boolean))].sort();
+  const waiverOptions = (waiverRows ?? []).map((w) => ({ id: w.id as string, title: w.title as string }));
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
@@ -47,7 +56,7 @@ export default async function GuestsPage({
         <ExportCsvButton />
       </div>
 
-      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} />
+      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} waiverOptions={waiverOptions} />
       <GuestTable guests={guests ?? []} />
     </div>
   );

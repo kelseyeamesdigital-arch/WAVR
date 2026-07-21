@@ -1,14 +1,17 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, CalendarDays, Clock, HeartPulse, Users, X } from "lucide-react";
+import { Search, CalendarDays, Clock, HeartPulse, Users, FileText, X } from "lucide-react";
 
-export default function GuestFilterBar({ totalCount, timeOptions }: { totalCount: number; timeOptions: string[] }) {
+type WaiverOption = { id: string; title: string };
+
+export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions }: { totalCount: number; timeOptions: string[]; waiverOptions: WaiverOption[] }) {
   const router = useRouter();
   const params = useSearchParams();
   const q = params.get("q") ?? "";
   const date = params.get("date") ?? "";
   const time = params.get("time") ?? "";
+  const waiver = params.get("waiver") ?? "";
 
   const today = new Date().toISOString().slice(0, 10);
   const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
@@ -23,7 +26,7 @@ export default function GuestFilterBar({ totalCount, timeOptions }: { totalCount
     router.push("/dashboard/guests");
   }
 
-  const hasFilter = q || date || time || params.get("medical") || params.get("age");
+  const hasFilter = q || date || time || waiver || params.get("medical") || params.get("age");
 
   function chip(key: string, value: string, label: string) {
     const active = params.get(key) === value;
@@ -39,15 +42,32 @@ export default function GuestFilterBar({ totalCount, timeOptions }: { totalCount
 
   return (
     <div className="space-y-3 mb-6">
-      {/* Search */}
-      <div className="relative max-w-sm">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-        <input
-          defaultValue={q}
-          placeholder="Search by name…"
-          onChange={(e) => update("q", e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
-        />
+      {/* Search + waiver */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative max-w-sm flex-1 min-w-[200px]">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+          <input
+            defaultValue={q}
+            placeholder="Search by name…"
+            onChange={(e) => update("q", e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
+          />
+        </div>
+        {waiverOptions.length > 1 && (
+          <div className="flex items-center gap-2">
+            <FileText size={15} className="text-zinc-500 shrink-0" />
+            <select
+              value={waiver}
+              onChange={(e) => update("waiver", e.target.value)}
+              className="text-sm px-3 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-wavr-blue max-w-[220px]"
+            >
+              <option value="">All waivers</option>
+              {waiverOptions.map((w) => (
+                <option key={w.id} value={w.id}>{w.title}</option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Date filter */}

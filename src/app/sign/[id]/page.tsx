@@ -50,6 +50,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     ? `Sign your ${biz} waiver online — it only takes a minute.`
     : "Sign your waiver online — it only takes a minute.";
   const image = waiver.cover_image_url || profile?.logo_url || null;
+  // Home-screen icon: prefer the operator's logo (squarer than a cover photo)
+  const icon = profile?.logo_url || waiver.cover_image_url || null;
 
   return {
     title,
@@ -66,6 +68,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       title,
       description,
       ...(image ? { images: [image] } : {}),
+    },
+    // Per-operator "Add to Home Screen" icon + label on iOS (overrides the global WAVR manifest)
+    ...(icon ? { icons: { icon, shortcut: icon, apple: icon } } : {}),
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "black-translucent",
+      title: biz || "Waiver",
     },
   };
 }

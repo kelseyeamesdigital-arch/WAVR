@@ -1,7 +1,7 @@
 {
-  "name": "WAVR – Adventure Rafting Bled",
+  "name": "WAVR",
   "short_name": "WAVR",
-  "description": "Guest check-in for Adventure Rafting Bled",
+  "description": "Digital waivers for adventure tourism.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
