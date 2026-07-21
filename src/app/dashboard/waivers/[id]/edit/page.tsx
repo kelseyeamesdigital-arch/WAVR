@@ -13,7 +13,7 @@ export default async function EditWaiverPage({
 
   const { data: waiver } = await supabase
     .from("waivers")
-    .select("id, title, body_text, fields, slug, cover_image_url, trip_time_slots")
+    .select("id, title, body_text, fields, slug, cover_image_url, trip_time_slots, photo_opt_in_enabled")
     .eq("id", id)
     .eq("operator_id", user!.id)
     .single();

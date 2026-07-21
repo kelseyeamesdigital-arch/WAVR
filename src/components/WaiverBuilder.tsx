@@ -158,6 +158,7 @@ type InitialData = {
   slug?: string | null;
   cover_image_url?: string | null;
   trip_time_slots?: string | null;
+  photo_opt_in_enabled?: boolean;
 };
 
 function toSlug(str: string) {
@@ -176,6 +177,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const [slugEdited, setSlugEdited] = useState(!!initial?.slug);
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.cover_image_url ?? "");
   const [tripTimeSlots, setTripTimeSlots] = useState(initial?.trip_time_slots ?? "8:00 AM,1:00 PM");
+  const [photoOptIn, setPhotoOptIn] = useState(initial?.photo_opt_in_enabled ?? true);
   const [bodyText, setBodyText] = useState(
     initial?.body_text ??
     "I understand that participating in this activity involves risk of injury or death. I voluntarily assume all risks and waive any claims against the operator."
@@ -231,7 +233,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
     if (initial?.id) {
       ({ error: err } = await supabase
         .from("waivers")
-        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, trip_time_slots: tripTimeSlots || null, body_text: bodyText, fields })
+        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, trip_time_slots: tripTimeSlots || null, body_text: bodyText, fields, photo_opt_in_enabled: photoOptIn })
         .eq("id", initial.id)
         .eq("operator_id", user!.id));
     } else {
@@ -243,6 +245,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
         trip_time_slots: tripTimeSlots || null,
         body_text: bodyText,
         fields,
+        photo_opt_in_enabled: photoOptIn,
         is_active: true,
       }));
     }
@@ -322,6 +325,22 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             rows={5}
             className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent resize-none text-sm"
           />
+        </div>
+        {/* Photo opt-in toggle */}
+        <div className="flex items-start justify-between gap-4 rounded-lg bg-zinc-900 border border-zinc-700 px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-white">Offer free trip photos</p>
+            <p className="text-xs text-zinc-500 mt-0.5">Adds a checkbox on the guest's email step to opt in to receiving photos.</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={photoOptIn}
+            onClick={() => setPhotoOptIn((v) => !v)}
+            className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${photoOptIn ? "bg-wavr-blue" : "bg-zinc-600"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${photoOptIn ? "translate-x-5" : ""}`} />
+          </button>
         </div>
       </div>
 

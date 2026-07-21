@@ -15,7 +15,7 @@ const getSignData = cache(async (id: string) => {
   // Try slug first, fall back to UUID
   let { data: waiver } = await supabase
     .from("waivers")
-    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
+    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled")
     .eq("slug", id)
     .eq("is_active", true)
     .maybeSingle();
@@ -23,7 +23,7 @@ const getSignData = cache(async (id: string) => {
   if (!waiver) {
     ({ data: waiver } = await supabase
       .from("waivers")
-      .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
+      .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled")
       .eq("id", id)
       .eq("is_active", true)
       .maybeSingle());

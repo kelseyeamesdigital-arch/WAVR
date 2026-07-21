@@ -30,6 +30,7 @@ type Waiver = {
   operator_id: string;
   cover_image_url?: string | null;
   trip_time_slots?: string | null;
+  photo_opt_in_enabled?: boolean;
   operator?: Operator | Operator[] | null;
 };
 
@@ -1079,8 +1080,8 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                     }
                     className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 text-xl text-gray-900 focus:outline-none focus:border-wavr-blue transition"
                   />
-                  {/* Photo opt-in — only on email field */}
-                  {field.type === "email" && (
+                  {/* Photo opt-in — only on email field, and only if enabled for this waiver */}
+                  {field.type === "email" && waiver.photo_opt_in_enabled !== false && (
                     <div className="bg-wavr-blue/5 border border-wavr-blue/20 rounded-2xl px-4 py-3">
                       <label className="flex items-start gap-3 cursor-pointer">
                         <input
