@@ -12,21 +12,34 @@ export const revalidate = 300;
 const getSignData = cache(async (id: string) => {
   const supabase = createPublicClient();
 
-  // Try slug first, fall back to UUID
-  let { data: waiver } = await supabase
+  // Prefer the full row (incl. newer optional columns), trying slug then UUID.
+  let { data: waiver, error } = await supabase
     .from("waivers")
     .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled")
-    .eq("slug", id)
-    .eq("is_active", true)
-    .maybeSingle();
+    .eq("slug", id).eq("is_active", true).maybeSingle();
 
-  if (!waiver) {
-    ({ data: waiver } = await supabase
+  if (!waiver && !error) {
+    ({ data: waiver, error } = await supabase
       .from("waivers")
       .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled")
-      .eq("id", id)
-      .eq("is_active", true)
-      .maybeSingle());
+      .eq("id", id).eq("is_active", true).maybeSingle());
+  }
+
+  // If a newer optional column isn't migrated in the DB yet, the select errors —
+  // fall back to the core columns so a schema mismatch can never 404 a live waiver
+  // (the photo opt-in simply defaults on until the migration is run).
+  if (error) {
+    let core = await supabase
+      .from("waivers")
+      .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
+      .eq("slug", id).eq("is_active", true).maybeSingle();
+    if (!core.data) {
+      core = await supabase
+        .from("waivers")
+        .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
+        .eq("id", id).eq("is_active", true).maybeSingle();
+    }
+    waiver = core.data ? { ...core.data, photo_opt_in_enabled: true } : null;
   }
 
   if (!waiver) return null;
