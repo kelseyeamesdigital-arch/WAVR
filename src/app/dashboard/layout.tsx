@@ -2,8 +2,6 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/supabase/server";
 import Sidebar from "@/components/Sidebar";
 
-export const runtime = 'edge';
-
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await getCurrentUser();
   if (!user) redirect("/login");

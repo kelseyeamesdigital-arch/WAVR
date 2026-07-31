@@ -2,8 +2,6 @@ import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import ProfileSettingsForm from "@/components/ProfileSettingsForm";
 import ChangePasswordForm from "@/components/ChangePasswordForm";
 
-export const runtime = 'edge';
-
 export default async function SettingsPage() {
   const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 

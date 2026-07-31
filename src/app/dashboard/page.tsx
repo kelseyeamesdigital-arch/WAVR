@@ -3,8 +3,6 @@ import { createClient, getCurrentUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import { FileText, Users, PenLine, AlertTriangle } from "lucide-react";
 
-export const runtime = 'edge';
-
 export default function DashboardPage() {
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">

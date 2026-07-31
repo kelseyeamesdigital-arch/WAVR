@@ -3,8 +3,6 @@ import GuestTable from "@/components/GuestTable";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import GuestFilterBar from "@/components/GuestFilterBar";
 
-export const runtime = 'edge';
-
 export default async function GuestsPage({
   searchParams,
 }: {

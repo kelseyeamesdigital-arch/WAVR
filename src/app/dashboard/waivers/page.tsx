@@ -4,8 +4,6 @@ import { Plus, ExternalLink, Users, Pencil } from "lucide-react";
 import DeleteWaiverButton from "@/components/DeleteWaiverButton";
 import WaiverQrModal from "@/components/WaiverQrModal";
 
-export const runtime = 'edge';
-
 export default async function WaiversPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
