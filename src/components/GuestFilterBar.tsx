@@ -1,11 +1,11 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, CalendarDays, Clock, HeartPulse, Users, FileText, X } from "lucide-react";
+import { Search, CalendarDays, Clock, HeartPulse, Users, FileText, Camera, X } from "lucide-react";
 
 type WaiverOption = { id: string; title: string };
 
-export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions }: { totalCount: number; timeOptions: string[]; waiverOptions: WaiverOption[] }) {
+export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions, offersPhotos }: { totalCount: number; timeOptions: string[]; waiverOptions: WaiverOption[]; offersPhotos: boolean }) {
   const router = useRouter();
   const params = useSearchParams();
   const q = params.get("q") ?? "";
@@ -26,7 +26,7 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions 
     router.push("/dashboard/guests");
   }
 
-  const hasFilter = q || date || time || waiver || params.get("medical") || params.get("age");
+  const hasFilter = q || date || time || waiver || params.get("medical") || params.get("age") || params.get("photos");
 
   function chip(key: string, value: string, label: string) {
     const active = params.get(key) === value;
@@ -117,6 +117,15 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions 
         <Users size={15} className="text-zinc-500 shrink-0" />
         {chip("age", "u18", "Under 18")}
         {chip("age", "18plus", "18+")}
+
+        {offersPhotos && (
+          <>
+            <span className="w-px h-5 bg-zinc-700 mx-1" />
+            <Camera size={15} className="text-zinc-500 shrink-0" />
+            {chip("photos", "yes", "Wants photos")}
+            {chip("photos", "no", "No photos")}
+          </>
+        )}
 
         {hasFilter && (
           <button onClick={clear} className="flex items-center gap-1 text-xs text-zinc-500 hover:text-white transition">
