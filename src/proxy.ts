@@ -55,5 +55,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // Guest sign pages are excluded entirely: they're public, need no auth check, and
+  // keeping middleware off them lets their HTML be served straight from the CDN cache.
+  matcher: ["/((?!sign/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };
