@@ -8,6 +8,30 @@ import WaiverWizard from "@/components/WaiverWizard";
 // from the CDN worldwide instead of each hitting the database in Ireland.
 export const revalidate = 300;
 
+// Pre-render every active waiver at build time so its HTML is served straight from
+// the CDN edge nearest the guest (Sydney for NZ/AU) instead of running a function in
+// Dublin on every load. Waivers created after a deploy still work — they render
+// on-demand the first time, then get cached (dynamicParams defaults to true).
+export async function generateStaticParams() {
+  try {
+    const supabase = createPublicClient();
+    const { data } = await supabase
+      .from("waivers")
+      .select("id, slug")
+      .eq("is_active", true);
+
+    // A waiver is reachable by slug or by UUID, so pre-render whichever it has.
+    return (data ?? []).flatMap((w) => {
+      const ids = [w.slug, w.id].filter(Boolean) as string[];
+      return ids.map((id) => ({ id }));
+    });
+  } catch {
+    // Never let a build fail because the DB was unreachable — fall back to
+    // rendering all sign pages on demand.
+    return [];
+  }
+}
+
 // Shared by generateMetadata and the page — cache() dedupes so we only hit the DB once per request
 const getSignData = cache(async (id: string) => {
   const supabase = createPublicClient();
