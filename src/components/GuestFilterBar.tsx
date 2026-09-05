@@ -33,7 +33,7 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
     return (
       <button
         onClick={() => update(key, active ? "" : value)}
-        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${active ? "bg-wavr-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+        className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${active ? "bg-brand text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
       >
         {label}
       </button>
@@ -50,7 +50,7 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
             defaultValue={q}
             placeholder="Search by name…"
             onChange={(e) => update("q", e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent"
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white text-sm placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
           />
         </div>
         {waiverOptions.length > 1 && (
@@ -59,7 +59,7 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
             <select
               value={waiver}
               onChange={(e) => update("waiver", e.target.value)}
-              className="text-sm px-3 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-wavr-blue max-w-[220px]"
+              className="text-sm px-3 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand max-w-[220px]"
             >
               <option value="">All waivers</option>
               {waiverOptions.map((w) => (
@@ -75,13 +75,13 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
         <CalendarDays size={15} className="text-zinc-500 shrink-0" />
         <button
           onClick={() => update("date", today)}
-          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === today ? "bg-wavr-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === today ? "bg-brand text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
         >
           Today
         </button>
         <button
           onClick={() => update("date", tomorrow)}
-          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === tomorrow ? "bg-wavr-blue text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition ${date === tomorrow ? "bg-brand text-white" : "bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700"}`}
         >
           Tomorrow
         </button>
@@ -89,7 +89,7 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
           type="date"
           value={date}
           onChange={(e) => update("date", e.target.value)}
-          className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-wavr-blue"
+          className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand"
         />
         <span className="text-xs text-zinc-500 ml-auto">{totalCount} {totalCount === 1 ? "guest" : "guests"}</span>
       </div>
@@ -100,7 +100,7 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
         <select
           value={time}
           onChange={(e) => update("time", e.target.value)}
-          className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-wavr-blue"
+          className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 focus:outline-none focus:ring-2 focus:ring-brand"
         >
           <option value="">All times</option>
           {timeOptions.map((t) => (

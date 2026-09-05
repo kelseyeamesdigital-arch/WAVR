@@ -20,7 +20,7 @@ export default async function WaiversPage() {
         <h1 className="text-2xl font-bold text-white">Waivers</h1>
         <Link
           href="/dashboard/waivers/new"
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-wavr-blue hover:bg-wavr-blue-light text-white text-sm font-semibold transition"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-semibold transition"
         >
           <Plus size={16} />
           New waiver
@@ -58,7 +58,7 @@ export default async function WaiversPage() {
                 <Link
                   href={`/sign/${w.slug ?? w.id}`}
                   target="_blank"
-                  className="flex items-center gap-1.5 text-xs text-wavr-blue-light hover:text-wavr-teal transition"
+                  className="flex items-center gap-1.5 text-xs text-brand-light hover:text-white transition"
                 >
                   <ExternalLink size={14} />
                   Sign link
@@ -74,7 +74,7 @@ export default async function WaiversPage() {
           <p className="text-zinc-400 text-sm mb-4">No waivers yet.</p>
           <Link
             href="/dashboard/waivers/new"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-wavr-blue hover:bg-wavr-blue-light text-white text-sm font-semibold transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-semibold transition"
           >
             <Plus size={16} />
             Create your first waiver

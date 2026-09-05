@@ -16,7 +16,7 @@ type Profile = {
 
 type Props = { userId: string; initial: Profile };
 
-const inputCls = "w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-wavr-blue focus:border-transparent text-sm";
+const inputCls = "w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent text-sm";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -159,7 +159,7 @@ export default function ProfileSettingsForm({ userId, initial }: Props) {
       {error && <p className="text-red-400 text-sm">{error}</p>}
 
       <button onClick={handleSave} disabled={saving || !businessName.trim()}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-wavr-blue hover:bg-wavr-blue-light text-white font-semibold text-sm transition disabled:opacity-50">
+        className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white font-semibold text-sm transition disabled:opacity-50">
         {saved ? <CheckCircle size={15} /> : <Save size={15} />}
         {saved ? "Saved!" : saving ? "Saving…" : "Save settings"}
       </button>

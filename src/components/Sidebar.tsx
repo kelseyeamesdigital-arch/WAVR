@@ -13,7 +13,15 @@ const navItems = [
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
-export default function Sidebar({ user }: { user: User }) {
+export default function Sidebar({
+  user,
+  businessName,
+  logoUrl,
+}: {
+  user: User;
+  businessName?: string | null;
+  logoUrl?: string | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -24,15 +32,31 @@ export default function Sidebar({ user }: { user: User }) {
     router.refresh();
   }
 
-  const businessName = user.user_metadata?.business_name ?? user.email;
+  // Prefer the name saved in Settings; fall back to signup metadata, then the email.
+  const displayName = businessName || user.user_metadata?.business_name || user.email;
+  const showEmail = displayName !== user.email;
 
   return (
     <>
       {/* ── Desktop sidebar ── */}
       <aside className="hidden md:flex w-56 flex-col bg-zinc-950 border-r border-zinc-800 shrink-0">
         <div className="px-5 py-5 border-b border-zinc-800">
-          <span className="text-2xl font-black text-white tracking-tight" style={{ fontFamily: "Oswald, sans-serif" }}>WAVR</span>
-          <p className="text-xs text-zinc-500 truncate mt-1">{businessName}</p>
+          <div className="flex items-center gap-2.5">
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt=""
+                className="w-8 h-8 rounded-md object-contain bg-white shrink-0"
+              />
+            )}
+            <p className="text-base font-bold text-white leading-tight truncate" title={displayName}>
+              {displayName}
+            </p>
+          </div>
+          {showEmail && <p className="text-[11px] text-zinc-500 truncate mt-1.5">{user.email}</p>}
+          <p className="text-[10px] text-zinc-600 tracking-widest mt-2" style={{ fontFamily: "Oswald, sans-serif" }}>
+            POWERED BY WAVR
+          </p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {navItems.map(({ href, label, icon: Icon }) => {
@@ -43,7 +67,7 @@ export default function Sidebar({ user }: { user: User }) {
                 href={href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
                   active
-                    ? "bg-wavr-blue/10 text-wavr-blue-light"
+                    ? "bg-brand/10 text-brand-light"
                     : "text-zinc-400 hover:text-white hover:bg-zinc-800"
                 }`}
               >
@@ -66,7 +90,12 @@ export default function Sidebar({ user }: { user: User }) {
 
       {/* ── Mobile top bar ── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-zinc-950 border-b border-zinc-800">
-        <span className="text-xl font-black text-white tracking-tight" style={{ fontFamily: "Oswald, sans-serif" }}>WAVR</span>
+        <div className="flex items-center gap-2 min-w-0">
+          {logoUrl && (
+            <img src={logoUrl} alt="" className="w-6 h-6 rounded object-contain bg-white shrink-0" />
+          )}
+          <span className="text-sm font-bold text-white truncate">{displayName}</span>
+        </div>
         <button
           onClick={handleSignOut}
           className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition px-2 py-1.5 rounded-lg hover:bg-zinc-800"
@@ -85,7 +114,7 @@ export default function Sidebar({ user }: { user: User }) {
               key={href}
               href={href}
               className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-medium transition ${
-                active ? "text-wavr-blue-light" : "text-zinc-500"
+                active ? "text-brand-light" : "text-zinc-500"
               }`}
             >
               <Icon size={20} strokeWidth={active ? 2.5 : 1.8} />

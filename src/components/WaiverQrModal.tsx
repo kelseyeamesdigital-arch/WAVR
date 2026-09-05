@@ -91,7 +91,7 @@ export default function WaiverQrModal({ slug, waiverId, title }: Props) {
 
             <button
               onClick={downloadQr}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-wavr-blue hover:bg-wavr-blue-light text-white text-sm font-semibold transition"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-brand hover:bg-brand-light text-white text-sm font-semibold transition"
             >
               <Download size={14} />
               Download QR (PNG)

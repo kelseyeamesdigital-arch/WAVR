@@ -40,14 +40,14 @@ async function StatsCards() {
     <div className="grid grid-cols-2 gap-3 mb-8">
       <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
         <div className="flex items-center gap-3 mb-2">
-          <FileText size={18} className="text-wavr-blue-light" />
+          <FileText size={18} className="text-brand-light" />
           <span className="text-sm text-zinc-400">Waivers</span>
         </div>
         <p className="text-3xl font-bold text-white">{waiverCount ?? 0}</p>
       </div>
       <div className="bg-zinc-800 rounded-xl p-5 border border-zinc-700">
         <div className="flex items-center gap-3 mb-2">
-          <Users size={18} className="text-wavr-blue-light" />
+          <Users size={18} className="text-brand-light" />
           <span className="text-sm text-zinc-400">Total guests</span>
         </div>
         <p className="text-3xl font-bold text-white">{guestCount ?? 0}</p>
@@ -70,7 +70,7 @@ async function RecentSignIns() {
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold text-white">Recent sign-ins</h2>
-        <Link href="/dashboard/guests" className="text-sm text-wavr-blue-light hover:text-wavr-teal">
+        <Link href="/dashboard/guests" className="text-sm text-brand-light hover:text-white">
           View all
         </Link>
       </div>
@@ -105,7 +105,7 @@ async function RecentSignIns() {
           <p className="text-zinc-400 text-sm">No sign-ins yet.</p>
           <Link
             href="/dashboard/waivers/new"
-            className="mt-3 inline-block text-sm text-wavr-blue-light hover:text-wavr-teal"
+            className="mt-3 inline-block text-sm text-brand-light hover:text-white"
           >
             Create your first waiver →
           </Link>
