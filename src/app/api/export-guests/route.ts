@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
+import { todayIn } from "@/lib/dates";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -68,7 +69,13 @@ export async function GET(request: Request) {
     )
     .join("\n");
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Date the file in the operator's own timezone
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user.id)
+    .maybeSingle();
+  const today = todayIn(profile?.timezone);
 
   return new NextResponse(csv, {
     headers: {

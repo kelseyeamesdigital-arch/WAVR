@@ -44,7 +44,14 @@ export default async function GuestsPage({
     .eq("operator_id", user!.id)
     .order("title");
 
-  const [{ data: guests }, { data: timeRows }, { data: waiverRows }] = await Promise.all([query, timeQuery, waiverQuery]);
+  // Operator's timezone, so "Today"/"Tomorrow" match their local date
+  const profileQuery = supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user!.id)
+    .maybeSingle();
+
+  const [{ data: guests }, { data: timeRows }, { data: waiverRows }, { data: profile }] = await Promise.all([query, timeQuery, waiverQuery, profileQuery]);
   const timeOptions = [...new Set((timeRows ?? []).map((r) => r.trip_time as string).filter(Boolean))].sort();
   const waiverOptions = (waiverRows ?? []).map((w) => ({ id: w.id as string, title: w.title as string }));
   // Only surface the photo filter to operators who actually offer photos on a waiver
@@ -57,7 +64,7 @@ export default async function GuestsPage({
         <ExportCsvButton />
       </div>
 
-      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} waiverOptions={waiverOptions} offersPhotos={offersPhotos} />
+      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} waiverOptions={waiverOptions} offersPhotos={offersPhotos} timezone={profile?.timezone ?? null} />
       <GuestTable guests={guests ?? []} />
     </div>
   );

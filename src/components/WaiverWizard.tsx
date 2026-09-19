@@ -3,6 +3,7 @@
 import { useRef, useState, useMemo, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { createClient } from "@/lib/supabase/client";
+import { todayIn } from "@/lib/dates";
 import { CheckCircle, Users, ChevronLeft, Trash2, ChevronRight } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -20,6 +21,7 @@ type Operator = {
   business_name: string;
   logo_url: string | null;
   website: string | null;
+  timezone?: string | null;
 };
 
 type Waiver = {
@@ -341,7 +343,10 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   const bizLogo = operator?.logo_url || null;
 
   const [values, setValues] = useState<Record<string, string>>({});
-  const [tripDate, setTripDate] = useState(new Date().toISOString().slice(0, 10));
+  // Default trip date = today in the operator's timezone (not UTC — for NZ that's
+  // still yesterday until midday, which saved waivers against the wrong trip day).
+  const opTimezone = operator?.timezone ?? null;
+  const [tripDate, setTripDate] = useState(() => todayIn(opTimezone));
   const [tripTime, setTripTime] = useState("");
   const [dobD, setDobD] = useState("");
   const [dobM, setDobM] = useState("");
@@ -583,7 +588,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   function resetWizard(keepTrip = false) {
     setValues({});
     if (!keepTrip) {
-      setTripDate(new Date().toISOString().slice(0, 10));
+      setTripDate(todayIn(opTimezone));
       setTripTime("");
     }
     setDobD(""); setDobM(""); setDobY("");
@@ -766,7 +771,7 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
                 <input
                   type="date"
                   value={tripDate}
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={todayIn(opTimezone)}
                   onChange={(e) => setTripDate(e.target.value)}
                   className="w-full px-4 py-3 rounded-2xl border-2 border-gray-200 text-gray-900 text-base focus:outline-none focus:border-wavr-blue appearance-none"
                   style={{ colorScheme: "light" }}

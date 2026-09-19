@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Upload, Save, CheckCircle } from "lucide-react";
 
@@ -12,9 +12,20 @@ type Profile = {
   phone: string | null;
   email: string | null;
   primary_color: string | null;
+  timezone: string | null;
 };
 
 type Props = { userId: string; initial: Profile };
+
+// Every IANA timezone the browser knows, with a short fallback for older browsers.
+function allTimezones(): string[] {
+  try {
+    const intl = Intl as unknown as { supportedValuesOf?: (key: string) => string[] };
+    const list = intl.supportedValuesOf?.("timeZone");
+    if (list?.length) return list;
+  } catch {}
+  return ["Pacific/Auckland", "Australia/Sydney", "Europe/Ljubljana", "Europe/London", "America/New_York", "America/Los_Angeles", "UTC"];
+}
 
 const inputCls = "w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent text-sm";
 
@@ -44,6 +55,15 @@ export default function ProfileSettingsForm({ userId, initial }: Props) {
   const [email, setEmail]               = useState(initial.email ?? "");
   const [primaryColor, setPrimaryColor] = useState(initial.primary_color ?? "#1E9FD4");
   const [logoUrl, setLogoUrl]           = useState(initial.logo_url ?? "");
+  const [timezone, setTimezone]         = useState(initial.timezone ?? "");
+  const [timezones, setTimezones]       = useState<string[]>([]);
+
+  // Build the list (and default an unset timezone to the device's) only in the
+  // browser — the server runs in Dublin, so doing it during render would mismatch.
+  useEffect(() => {
+    setTimezones(allTimezones());
+    if (!initial.timezone) setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, [initial.timezone]);
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving]       = useState(false);
@@ -81,6 +101,7 @@ export default function ProfileSettingsForm({ userId, initial }: Props) {
       phone: phone || null,
       email: email || null,
       primary_color: primaryColor,
+      timezone: timezone || null,
       updated_at: new Date().toISOString(),
     });
     if (err) { setError(err.message); } else { setSaved(true); setTimeout(() => setSaved(false), 3000); }
@@ -94,26 +115,35 @@ export default function ProfileSettingsForm({ userId, initial }: Props) {
       <Section title="Organisation">
         <Field label="Business name">
           <input type="text" value={businessName} onChange={e => setBusinessName(e.target.value)}
-            placeholder="Adventure Rafting Bled" className={inputCls} />
+            placeholder="Your business name" className={inputCls} />
         </Field>
         <Field label="Address">
           <textarea value={address} onChange={e => setAddress(e.target.value)}
-            placeholder="Cankarjevo nabrežje 9, 4260 Bled, Slovenia"
+            placeholder="Street, town, postcode, country"
             rows={2} className={`${inputCls} resize-none`} />
         </Field>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Phone">
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-              placeholder="+386 41 123 456" className={inputCls} />
+              placeholder="+64 21 123 4567" className={inputCls} />
           </Field>
           <Field label="Email">
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="info@example.com" className={inputCls} />
+              placeholder="info@yourbusiness.com" className={inputCls} />
           </Field>
         </div>
         <Field label="Website">
           <input type="text" value={website} onChange={e => setWebsite(e.target.value)}
-            placeholder="adventure-rafting.com" className={inputCls} />
+            placeholder="yourbusiness.com" className={inputCls} />
+        </Field>
+        <Field label="Timezone">
+          <select value={timezone} onChange={e => setTimezone(e.target.value)} className={inputCls}>
+            {!timezones.includes(timezone) && <option value={timezone}>{timezone.replace(/_/g, " ") || "Select…"}</option>}
+            {timezones.map((tz) => (
+              <option key={tz} value={tz}>{tz.replace(/_/g, " ")}</option>
+            ))}
+          </select>
+          <p className="text-xs text-zinc-500 mt-1.5">Sets what &ldquo;today&rdquo; means on your dashboard and the default trip date on your waivers.</p>
         </Field>
       </Section>
 

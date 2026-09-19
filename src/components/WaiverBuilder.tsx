@@ -267,7 +267,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
           <input
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="e.g. Bled Canyoning Waiver"
+            placeholder="e.g. Half-Day Kayak Tour"
             className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent"
           />
         </div>
@@ -280,7 +280,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             <input
               value={slug}
               onChange={(e) => { setSlug(toSlug(e.target.value)); setSlugEdited(true); }}
-              placeholder="bled-canyoning"
+              placeholder="half-day-kayak-tour"
               className="flex-1 px-3 py-2.5 bg-transparent text-white text-sm placeholder-zinc-500 focus:outline-none"
             />
           </div>
@@ -306,7 +306,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
           <input
             value={tripTimeSlots}
             onChange={(e) => setTripTimeSlots(e.target.value)}
-            placeholder="8:00 AM,1:00 PM"
+            placeholder="e.g. 9:00 AM, 1:30 PM"
             className="w-full px-4 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent text-sm"
           />
           {tripTimeSlots && (

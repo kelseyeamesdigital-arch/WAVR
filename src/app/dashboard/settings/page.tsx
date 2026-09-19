@@ -7,7 +7,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("business_name, logo_url, website, address, phone, email, primary_color")
+    .select("business_name, logo_url, website, address, phone, email, primary_color, timezone")
     .eq("id", user!.id)
     .maybeSingle();
 
@@ -16,7 +16,7 @@ export default async function SettingsPage() {
       <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
       <ProfileSettingsForm
         userId={user!.id}
-        initial={profile ?? { business_name: "", logo_url: null, website: null, address: null, phone: null, email: null, primary_color: null }}
+        initial={profile ?? { business_name: "", logo_url: null, website: null, address: null, phone: null, email: null, primary_color: null, timezone: null }}
       />
       <div className="mt-5">
         <ChangePasswordForm />

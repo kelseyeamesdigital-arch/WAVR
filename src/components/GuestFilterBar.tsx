@@ -2,10 +2,11 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, CalendarDays, Clock, HeartPulse, Users, FileText, Camera, X } from "lucide-react";
+import { todayIn, addDays } from "@/lib/dates";
 
 type WaiverOption = { id: string; title: string };
 
-export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions, offersPhotos }: { totalCount: number; timeOptions: string[]; waiverOptions: WaiverOption[]; offersPhotos: boolean }) {
+export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions, offersPhotos, timezone }: { totalCount: number; timeOptions: string[]; waiverOptions: WaiverOption[]; offersPhotos: boolean; timezone?: string | null }) {
   const router = useRouter();
   const params = useSearchParams();
   const q = params.get("q") ?? "";
@@ -13,8 +14,9 @@ export default function GuestFilterBar({ totalCount, timeOptions, waiverOptions,
   const time = params.get("time") ?? "";
   const waiver = params.get("waiver") ?? "";
 
-  const today = new Date().toISOString().slice(0, 10);
-  const tomorrow = new Date(Date.now() + 86400000).toISOString().slice(0, 10);
+  // "Today" in the operator's own timezone, not UTC
+  const today = todayIn(timezone);
+  const tomorrow = addDays(today, 1);
 
   function update(key: string, value: string) {
     const p = new URLSearchParams(params.toString());

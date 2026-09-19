@@ -68,11 +68,21 @@ const getSignData = cache(async (id: string) => {
 
   if (!waiver) return null;
 
-  const { data: profile } = await supabase
+  // Include timezone (for the default trip date); if that column isn't migrated yet,
+  // fall back to the core fields so the page never loses the operator's branding.
+  let { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("business_name, logo_url, website")
+    .select("business_name, logo_url, website, timezone")
     .eq("id", waiver.operator_id)
     .maybeSingle();
+  if (profileError) {
+    const core = await supabase
+      .from("profiles")
+      .select("business_name, logo_url, website")
+      .eq("id", waiver.operator_id)
+      .maybeSingle();
+    profile = core.data ? { ...core.data, timezone: null } : null;
+  }
 
   return { waiver, profile };
 });
