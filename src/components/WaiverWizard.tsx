@@ -4,6 +4,7 @@ import { useRef, useState, useMemo, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { createClient } from "@/lib/supabase/client";
 import { todayIn } from "@/lib/dates";
+import { buildSteps, findNameField, isStepSkipped, type Step } from "@/lib/waiverSteps";
 import { CheckCircle, Users, ChevronLeft, Trash2, ChevronRight } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -33,37 +34,9 @@ type Waiver = {
   cover_image_url?: string | null;
   trip_time_slots?: string | null;
   photo_opt_in_enabled?: boolean;
+  returning_guest_enabled?: boolean;
   operator?: Operator | Operator[] | null;
 };
-
-type Step =
-  | { type: "welcome" }
-  | { type: "trip" }
-  | { type: "field"; field: Field }
-  | { type: "followup"; field: Field }
-  | { type: "terms" }
-  | { type: "signature" };
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function buildSteps(fields: Field[], hasTrip: boolean): Step[] {
-  const steps: Step[] = [{ type: "welcome" }];
-  if (hasTrip) steps.push({ type: "trip" });
-  for (const field of fields) {
-    steps.push({ type: "field", field });
-    if (field.type === "conditional" && field.followUpLabel) {
-      steps.push({ type: "followup", field });
-    }
-  }
-  steps.push({ type: "terms" });
-  steps.push({ type: "signature" });
-  return steps;
-}
-
-function shouldSkip(step: Step, values: Record<string, string>): boolean {
-  if (step.type !== "followup") return false;
-  return values[step.field.id] !== "Yes";
-}
 
 const MONTHS = [
   "January","February","March","April","May","June",
@@ -118,7 +91,7 @@ type PendingSubmission = {
   signature_url: string;
   trip_date: string | null;
   trip_time: string | null;
-  has_medical: boolean;
+  has_medical: boolean | null;
   photo_opt_in: boolean;
 };
 
@@ -358,6 +331,12 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // Returning-guest fast-track (only when enabled on this waiver)
+  const [beenBefore, setBeenBefore] = useState<"" | "yes" | "no">("");
+  const [medicalChanged, setMedicalChanged] = useState<"" | "no" | "yes">("");
+  const [returningMinor, setReturningMinor] = useState(false);
+  const isReturning = beenBefore === "yes";
+
   // Group state
   const [signedGuests, setSignedGuests] = useState<string[]>([]);
   const [view, setView] = useState<"wizard" | "success" | "alldone">("wizard");
@@ -371,10 +350,11 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     ? waiver.trip_time_slots.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
   const steps = useMemo(
-    () => buildSteps(waiver.fields, timeSlots.length > 0),
+    () => buildSteps(waiver.fields, timeSlots.length > 0, waiver.returning_guest_enabled === true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [waiver.fields, waiver.trip_time_slots]
+    [waiver.fields, waiver.trip_time_slots, waiver.returning_guest_enabled]
   );
+  const nameField = useMemo(() => findNameField(waiver.fields), [waiver.fields]);
   const currentStep = steps[stepIndex];
 
   const guestName = getGuestName(waiver.fields, values);
@@ -391,17 +371,22 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
   }, [values, waiver.fields]);
 
   const age = dobAge ?? ageFieldValue;
-  const isMinor = age !== null && !isNaN(age) && age < 18;
+  // Returning guests skip the age question, so they tell us directly — otherwise an
+  // under-18 could sign without the guardian step.
+  const isMinor = (age !== null && !isNaN(age) && age < 18) || (isReturning && returningMinor);
 
   function sv(id: string, val: string) {
     setValues((v) => ({ ...v, [id]: val }));
   }
 
-  // Skip followup if answer is No; also skip email field for under-18s
   function isSkipped(step: Step): boolean {
-    if (shouldSkip(step, values)) return true;
-    if (step.type === "field" && step.field.type === "email" && isMinor) return true;
-    return false;
+    return isStepSkipped(step, {
+      values,
+      isMinor,
+      isReturning,
+      medicalChanged,
+      nameFieldId: nameField?.id,
+    });
   }
 
   function advance() {
@@ -486,6 +471,14 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
       }
     }
 
+    if (step.type === "returning") {
+      if (!beenBefore) { setError("Please let us know if you've been before."); return; }
+      if (beenBefore === "yes" && !medicalChanged) {
+        setError("Please tell us whether your medical details have changed.");
+        return;
+      }
+    }
+
     if (step.type === "followup") {
       const { field } = step;
       if (field.required && !values[`${field.id}_followup`]?.trim()) {
@@ -540,13 +533,21 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
       guest_country: guestCountry,
       trip_date: tripDate || null,
       trip_time: tripTime || null,
-      has_medical: Object.values(values).includes("Yes"),
+      // A returning guest who reports no medical change leaves this unknown; a
+      // database trigger copies it from their earlier waiver so they still show
+      // up correctly under the dashboard's medical filter.
+      has_medical:
+        isReturning && medicalChanged !== "yes"
+          ? null
+          : Object.values(values).includes("Yes"),
       photo_opt_in: values["wants_photos"] === "yes",
       form_data: {
         ...values,
         dob: dobD && dobM && dobY ? `${dobY}-${dobM}-${dobD}` : undefined,
         is_minor: isMinor,
         guardian_name: isMinor ? guardianName : undefined,
+        returning_guest: isReturning || undefined,
+        medical_changed: isReturning ? medicalChanged === "yes" : undefined,
       },
       signature_url: signatureDataUrl,
     };
@@ -593,6 +594,9 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     }
     setDobD(""); setDobM(""); setDobY("");
     setGuardianName("");
+    setBeenBefore("");
+    setMedicalChanged("");
+    setReturningMinor(false);
     setAgreed(false);
     setTermsScrolled(false);
     setError("");
@@ -748,6 +752,96 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
           <p className="text-xs text-gray-300 mt-5 text-center">{bizWebsite}</p>
         </div>
       </div>
+    );
+  }
+
+  // ─── RETURNING GUEST ───────────────────────────────────────────────────────
+
+  if (currentStep.type === "returning") {
+    const firstName = guestName.trim().split(" ")[0];
+    return (
+      <FullScreen>
+        <TopBar onBack={goBack} onDiscard={resetWizard} initials={initials} inProgress />
+        <div className="flex-1 flex flex-col justify-end">
+          <Card>
+            <div className="p-7">
+              <h2
+                className="text-2xl font-bold text-gray-900 mb-1"
+                style={{ fontFamily: "Oswald, sans-serif" }}
+              >
+                {firstName ? `Hi ${firstName}!` : "Quick question"}
+              </h2>
+              <p className="text-gray-500 text-sm mb-5">
+                Have you filled out this waiver with us before?
+              </p>
+
+              <div className="space-y-2.5">
+                <RadioOption
+                  label="Yes, I've been before"
+                  selected={beenBefore === "yes"}
+                  onClick={() => { setBeenBefore("yes"); setError(""); }}
+                />
+                <RadioOption
+                  label="No, this is my first time"
+                  selected={beenBefore === "no"}
+                  onClick={() => {
+                    setBeenBefore("no");
+                    setMedicalChanged("");
+                    setReturningMinor(false);
+                    setError("");
+                  }}
+                />
+              </div>
+
+              {beenBefore === "yes" && (
+                <div className="mt-6 pt-5 border-t border-gray-200">
+                  <p className="text-gray-900 font-semibold text-sm mb-1">
+                    Any changes to your health or medical details?
+                  </p>
+                  <p className="text-gray-400 text-xs mb-3">
+                    Injuries, conditions, medication — anything since your last trip.
+                  </p>
+                  <div className="space-y-2.5">
+                    <RadioOption
+                      label="No changes"
+                      selected={medicalChanged === "no"}
+                      onClick={() => { setMedicalChanged("no"); setError(""); }}
+                    />
+                    <RadioOption
+                      label="Yes, I need to update them"
+                      selected={medicalChanged === "yes"}
+                      onClick={() => { setMedicalChanged("yes"); setError(""); }}
+                    />
+                  </div>
+
+                  <label className="flex items-start gap-3 mt-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={returningMinor}
+                      onChange={(e) => setReturningMinor(e.target.checked)}
+                      className="mt-0.5 w-5 h-5 accent-wavr-blue shrink-0"
+                    />
+                    <span className="text-sm text-gray-600 leading-snug">
+                      I&apos;m under 18
+                      <span className="block text-xs text-gray-400">
+                        A parent or guardian will need to sign.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              )}
+
+              {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+              <div className="mt-6">
+                <NextBtn
+                  onClick={handleNext}
+                  label={beenBefore === "yes" && medicalChanged === "no" ? "STRAIGHT TO SIGNING" : "NEXT"}
+                />
+              </div>
+            </div>
+          </Card>
+        </div>
+      </FullScreen>
     );
   }
 

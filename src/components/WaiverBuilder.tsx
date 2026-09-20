@@ -159,6 +159,7 @@ type InitialData = {
   cover_image_url?: string | null;
   trip_time_slots?: string | null;
   photo_opt_in_enabled?: boolean;
+  returning_guest_enabled?: boolean;
 };
 
 function toSlug(str: string) {
@@ -178,6 +179,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
   const [coverImageUrl, setCoverImageUrl] = useState(initial?.cover_image_url ?? "");
   const [tripTimeSlots, setTripTimeSlots] = useState(initial?.trip_time_slots ?? "8:00 AM,1:00 PM");
   const [photoOptIn, setPhotoOptIn] = useState(initial?.photo_opt_in_enabled ?? true);
+  const [returningEnabled, setReturningEnabled] = useState(initial?.returning_guest_enabled ?? false);
   const [bodyText, setBodyText] = useState(
     initial?.body_text ??
     "I understand that participating in this activity involves risk of injury or death. I voluntarily assume all risks and waive any claims against the operator."
@@ -233,7 +235,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
     if (initial?.id) {
       ({ error: err } = await supabase
         .from("waivers")
-        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, trip_time_slots: tripTimeSlots || null, body_text: bodyText, fields, photo_opt_in_enabled: photoOptIn })
+        .update({ title: title.trim(), slug: slug || null, cover_image_url: coverImageUrl || null, trip_time_slots: tripTimeSlots || null, body_text: bodyText, fields, photo_opt_in_enabled: photoOptIn, returning_guest_enabled: returningEnabled })
         .eq("id", initial.id)
         .eq("operator_id", user!.id));
     } else {
@@ -246,6 +248,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
         body_text: bodyText,
         fields,
         photo_opt_in_enabled: photoOptIn,
+        returning_guest_enabled: returningEnabled,
         is_active: true,
       }));
     }
@@ -340,6 +343,25 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
             className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${photoOptIn ? "bg-brand" : "bg-zinc-600"}`}
           >
             <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${photoOptIn ? "translate-x-5" : ""}`} />
+          </button>
+        </div>
+        {/* Returning-guest fast-track toggle */}
+        <div className="flex items-start justify-between gap-4 rounded-lg bg-zinc-900 border border-zinc-700 px-4 py-3">
+          <div>
+            <p className="text-sm font-medium text-white">Returning guest fast-track</p>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              After their name, guests are asked if they&apos;ve been before. Returning guests with no medical
+              changes skip straight to the waiver and signature, and are linked to their earlier record.
+            </p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={returningEnabled}
+            onClick={() => setReturningEnabled((v) => !v)}
+            className={`relative shrink-0 w-11 h-6 rounded-full transition-colors ${returningEnabled ? "bg-brand" : "bg-zinc-600"}`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${returningEnabled ? "translate-x-5" : ""}`} />
           </button>
         </div>
       </div>

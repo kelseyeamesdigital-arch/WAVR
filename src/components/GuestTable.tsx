@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera, RotateCcw } from "lucide-react";
 import { deleteGuest } from "@/app/actions/delete";
 
 type Guest = {
@@ -28,6 +28,22 @@ function getWaiver(w: Guest["waiver"]) {
 
 function hasMedicalFlag(guest: Guest): boolean {
   return guest.has_medical === true;
+}
+
+/** Returning guests used the fast-track; the DB links them to their earlier waiver.
+ *  "linked" = details attached; anything else = staff should check manually. */
+function returningInfo(guest: Guest) {
+  const fd = guest.form_data as Record<string, unknown> | null;
+  if (!fd || fd.returning_guest !== true) return null;
+  const status = typeof fd.link_status === "string" ? fd.link_status : "no_match";
+  return {
+    linked: status === "linked",
+    medicalChanged: fd.medical_changed === true,
+    label:
+      status === "linked" ? "Returning"
+      : status === "ambiguous" ? "Returning · name not unique"
+      : "Returning · no earlier record",
+  };
 }
 
 function getMedicalDetails(guest: Guest): string[] {
@@ -58,6 +74,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
         const flagged = hasMedicalFlag(g);
         const medicalDetails = getMedicalDetails(g);
         const waiver = getWaiver(g.waiver);
+        const returning = returningInfo(g);
 
         return (
           <div key={g.id} className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${flagged ? "border-amber-500/40" : "border-zinc-700"}`}>
@@ -73,6 +90,23 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                   {flagged && (
                     <span className="shrink-0 text-[10px] font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
                       Medical
+                    </span>
+                  )}
+                  {returning && (
+                    <span
+                      title={
+                        returning.linked
+                          ? "Signed via the returning-guest fast-track; details linked from their earlier waiver."
+                          : "Signed as a returning guest, but their earlier waiver couldn't be matched — check their details."
+                      }
+                      className={`shrink-0 flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${
+                        returning.linked
+                          ? "bg-brand/20 text-brand-light"
+                          : "bg-amber-500/20 text-amber-400"
+                      }`}
+                    >
+                      <RotateCcw size={10} />
+                      {returning.label}
                     </span>
                   )}
                   {g.photo_opt_in === true && (

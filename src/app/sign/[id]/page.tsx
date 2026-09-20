@@ -39,13 +39,13 @@ const getSignData = cache(async (id: string) => {
   // Prefer the full row (incl. newer optional columns), trying slug then UUID.
   let { data: waiver, error } = await supabase
     .from("waivers")
-    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled")
+    .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled, returning_guest_enabled")
     .eq("slug", id).eq("is_active", true).maybeSingle();
 
   if (!waiver && !error) {
     ({ data: waiver, error } = await supabase
       .from("waivers")
-      .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled")
+      .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots, photo_opt_in_enabled, returning_guest_enabled")
       .eq("id", id).eq("is_active", true).maybeSingle());
   }
 
@@ -63,7 +63,7 @@ const getSignData = cache(async (id: string) => {
         .select("id, title, body_text, fields, operator_id, cover_image_url, trip_time_slots")
         .eq("id", id).eq("is_active", true).maybeSingle();
     }
-    waiver = core.data ? { ...core.data, photo_opt_in_enabled: true } : null;
+    waiver = core.data ? { ...core.data, photo_opt_in_enabled: true, returning_guest_enabled: false } : null;
   }
 
   if (!waiver) return null;
