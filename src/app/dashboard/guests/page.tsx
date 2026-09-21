@@ -1,4 +1,5 @@
 import { createClient, getCurrentUser } from "@/lib/supabase/server";
+import { dayRangeUtc } from "@/lib/dates";
 import GuestTable from "@/components/GuestTable";
 import ExportCsvButton from "@/components/ExportCsvButton";
 import GuestFilterBar from "@/components/GuestFilterBar";
@@ -11,6 +12,14 @@ export default async function GuestsPage({
   const { q, date, time, medical, age, waiver, photos } = await searchParams;
   const [supabase, user] = await Promise.all([createClient(), getCurrentUser()]);
 
+  // Needed before the main query so day filters can use the operator's local day.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user!.id)
+    .maybeSingle();
+  const timezone = profile?.timezone ?? null;
+
   let query = supabase
     .from("submissions")
     .select("id, guest_name, guest_email, guest_age, guest_country, created_at, signature_url, form_data, trip_date, trip_time, has_medical, photo_opt_in, waiver:waivers(title)")
@@ -19,7 +28,14 @@ export default async function GuestsPage({
     .order("created_at", { ascending: false });
 
   if (q) query = query.ilike("guest_name", `%${q}%`);
-  if (date) query = query.eq("trip_date", date);
+  // Match the trip date, or — for waivers that don't collect one — the day it was
+  // signed, so nothing is invisible on the day filter.
+  if (date) {
+    const { start, end } = dayRangeUtc(date, timezone);
+    query = query.or(
+      `trip_date.eq.${date},and(trip_date.is.null,created_at.gte.${start},created_at.lt.${end})`
+    );
+  }
   if (time) query = query.eq("trip_time", time);
   if (waiver) query = query.eq("waiver_id", waiver);
   if (medical === "yes") query = query.eq("has_medical", true);
@@ -44,14 +60,7 @@ export default async function GuestsPage({
     .eq("operator_id", user!.id)
     .order("title");
 
-  // Operator's timezone, so "Today"/"Tomorrow" match their local date
-  const profileQuery = supabase
-    .from("profiles")
-    .select("timezone")
-    .eq("id", user!.id)
-    .maybeSingle();
-
-  const [{ data: guests }, { data: timeRows }, { data: waiverRows }, { data: profile }] = await Promise.all([query, timeQuery, waiverQuery, profileQuery]);
+  const [{ data: guests }, { data: timeRows }, { data: waiverRows }] = await Promise.all([query, timeQuery, waiverQuery]);
   const timeOptions = [...new Set((timeRows ?? []).map((r) => r.trip_time as string).filter(Boolean))].sort();
   const waiverOptions = (waiverRows ?? []).map((w) => ({ id: w.id as string, title: w.title as string }));
   // Only surface the photo filter to operators who actually offer photos on a waiver
@@ -64,7 +73,7 @@ export default async function GuestsPage({
         <ExportCsvButton />
       </div>
 
-      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} waiverOptions={waiverOptions} offersPhotos={offersPhotos} timezone={profile?.timezone ?? null} />
+      <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} waiverOptions={waiverOptions} offersPhotos={offersPhotos} timezone={timezone} />
       <GuestTable guests={guests ?? []} />
     </div>
   );

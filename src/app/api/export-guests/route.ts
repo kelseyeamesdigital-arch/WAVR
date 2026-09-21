@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { todayIn } from "@/lib/dates";
+import { todayIn, dayRangeUtc } from "@/lib/dates";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -20,14 +20,29 @@ export async function GET(request: Request) {
   const age = sp.get("age");
   const photos = sp.get("photos");
 
+  // Operator's timezone — used for day filtering and the file's date
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("timezone")
+    .eq("id", user.id)
+    .maybeSingle();
+  const operatorTimezone = profile?.timezone ?? null;
+
   let query = supabase
     .from("submissions")
-    .select("guest_name, guest_email, guest_age, guest_country, created_at, trip_date, trip_time, has_medical, photo_opt_in, waiver:waivers(title)")
+    .select("guest_name, guest_email, guest_age, guest_country, created_at, trip_date, trip_time, has_medical, photo_opt_in, form_data, waiver:waivers(title)")
     .eq("operator_id", user.id)
     .order("created_at", { ascending: false });
 
   if (q) query = query.ilike("guest_name", `%${q}%`);
-  if (date) query = query.eq("trip_date", date);
+  // Same day-matching rule as the dashboard: trip date, or the day it was signed
+  // when the waiver doesn't collect one.
+  if (date) {
+    const { start, end } = dayRangeUtc(date, operatorTimezone);
+    query = query.or(
+      `trip_date.eq.${date},and(trip_date.is.null,created_at.gte.${start},created_at.lt.${end})`
+    );
+  }
   if (time) query = query.eq("trip_time", time);
   if (waiverId) query = query.eq("waiver_id", waiverId);
   if (medical === "yes") query = query.eq("has_medical", true);
@@ -44,7 +59,7 @@ export async function GET(request: Request) {
   }
 
   const rows = [
-    ["Name", "Email", "Age", "Country", "Waiver", "Trip Date", "Trip Time", "Wants Photos", "Date Signed"],
+    ["Name", "Email", "Age", "Country", "Waiver", "Trip Date", "Trip Time", "Wants Photos", "Signed By Guardian", "Date Signed"],
     ...(guests ?? []).map((g) => {
       const waiverTitle = Array.isArray(g.waiver)
         ? g.waiver[0]?.title ?? ""
@@ -58,6 +73,12 @@ export async function GET(request: Request) {
         g.trip_date ?? "",
         g.trip_time ?? "",
         g.photo_opt_in ? "Yes" : "No",
+        (() => {
+          const fd = g.form_data as Record<string, unknown> | null;
+          const guardian = typeof fd?.guardian_name === "string" ? fd.guardian_name.trim() : "";
+          if (guardian) return guardian;
+          return fd?.is_minor === true ? "Yes" : "";
+        })(),
         new Date(g.created_at).toLocaleDateString("en-GB"),
       ];
     }),
@@ -69,13 +90,7 @@ export async function GET(request: Request) {
     )
     .join("\n");
 
-  // Date the file in the operator's own timezone
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("timezone")
-    .eq("id", user.id)
-    .maybeSingle();
-  const today = todayIn(profile?.timezone);
+  const today = todayIn(operatorTimezone);
 
   return new NextResponse(csv, {
     headers: {

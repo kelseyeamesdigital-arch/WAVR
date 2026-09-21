@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera, RotateCcw } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera, RotateCcw, ShieldCheck } from "lucide-react";
 import { deleteGuest } from "@/app/actions/delete";
 
 type Guest = {
@@ -28,6 +28,15 @@ function getWaiver(w: Guest["waiver"]) {
 
 function hasMedicalFlag(guest: Guest): boolean {
   return guest.has_medical === true;
+}
+
+/** Under-18s are signed for by a parent/guardian, whose name the wizard requires. */
+function guardianInfo(guest: Guest) {
+  const fd = guest.form_data as Record<string, unknown> | null;
+  if (!fd) return null;
+  const name = typeof fd.guardian_name === "string" ? fd.guardian_name.trim() : "";
+  if (fd.is_minor !== true && !name) return null;
+  return { name };
 }
 
 /** Returning guests used the fast-track; the DB links them to their earlier waiver.
@@ -75,6 +84,7 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
         const medicalDetails = getMedicalDetails(g);
         const waiver = getWaiver(g.waiver);
         const returning = returningInfo(g);
+        const guardian = guardianInfo(g);
 
         return (
           <div key={g.id} className={`bg-zinc-800 rounded-xl border overflow-hidden transition-colors ${flagged ? "border-amber-500/40" : "border-zinc-700"}`}>
@@ -114,6 +124,12 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                   )}
                 </div>
                 <p className="text-xs text-zinc-500 truncate mt-0.5">{waiver?.title ?? "—"}</p>
+                {guardian && (
+                  <p className="text-[11px] text-amber-400/90 truncate mt-0.5 flex items-center gap-1">
+                    <ShieldCheck size={11} className="shrink-0" />
+                    Signed by guardian{guardian.name ? ` · ${guardian.name}` : ""}
+                  </p>
+                )}
               </div>
 
               {/* Date + chevron */}
@@ -160,6 +176,23 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                         {g.trip_time}
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* Guardian (under-18s) */}
+                {guardian && (
+                  <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                    <div className="flex items-center gap-2 mb-1">
+                      <ShieldCheck size={14} className="text-amber-400 shrink-0" />
+                      <span className="text-xs font-bold text-amber-400 uppercase tracking-wide">
+                        Under 18 — signed by guardian
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-200/80">
+                      {guardian.name
+                        ? <>Parent / guardian: <span className="font-semibold">{guardian.name}</span> — the signature below is theirs.</>
+                        : "The signature below is the parent or guardian's."}
+                    </p>
                   </div>
                 )}
 

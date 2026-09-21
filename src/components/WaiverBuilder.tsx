@@ -304,7 +304,7 @@ export default function WaiverBuilder({ initial }: { initial?: InitialData }) {
         </div>
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1">
-            Departure time slots <span className="text-zinc-500 font-normal">(comma-separated — leave blank to skip trip date step)</span>
+            Departure time slots <span className="text-zinc-500 font-normal">(comma-separated — leave blank to ask for a date only)</span>
           </label>
           <input
             value={tripTimeSlots}

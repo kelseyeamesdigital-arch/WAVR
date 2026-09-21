@@ -350,7 +350,9 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     ? waiver.trip_time_slots.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
   const steps = useMemo(
-    () => buildSteps(waiver.fields, timeSlots.length > 0, waiver.returning_guest_enabled === true),
+    // Always ask for the trip date — the departure-time picker only appears when
+    // the operator has configured time slots, so a waiver can have a date with no time.
+    () => buildSteps(waiver.fields, true, waiver.returning_guest_enabled === true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [waiver.fields, waiver.trip_time_slots, waiver.returning_guest_enabled]
   );
@@ -604,7 +606,9 @@ export default function WaiverWizard({ waiver }: { waiver: Waiver }) {
     setOfflineQueued(false);
     sigRef.current?.clear();
     // Skip trip step for subsequent group members
-    const startStep = keepTrip && timeSlots.length > 0 ? 2 : 0;
+    // Steps are [welcome, trip, ...fields]; the rest of the group shares the trip,
+    // so they start at the first question.
+    const startStep = keepTrip ? 2 : 0;
     setStepIndex(startStep);
     setView("wizard");
     window.scrollTo({ top: 0, behavior: "smooth" });
