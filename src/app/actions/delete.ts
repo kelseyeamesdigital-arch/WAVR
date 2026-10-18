@@ -20,6 +20,30 @@ export async function deleteWaiver(waiverId: string) {
   revalidatePath("/dashboard/waivers");
 }
 
+/** Correct which trip a guest is allocated to (they picked the wrong date/time when signing). */
+export async function updateGuestTrip(
+  submissionId: string,
+  tripDate: string | null,
+  tripTime: string | null
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  if (tripDate && !/^\d{4}-\d{2}-\d{2}$/.test(tripDate)) {
+    throw new Error("Invalid date");
+  }
+
+  const { error } = await supabase
+    .from("submissions")
+    .update({ trip_date: tripDate || null, trip_time: tripTime || null })
+    .eq("id", submissionId)
+    .eq("operator_id", user.id);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/dashboard/guests");
+}
+
 export async function deleteGuest(submissionId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

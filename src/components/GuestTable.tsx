@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera, RotateCcw, ShieldCheck } from "lucide-react";
-import { deleteGuest } from "@/app/actions/delete";
+import { ChevronDown, ChevronUp, MapPin, Mail, Calendar, FileText, Trash2, AlertTriangle, Clock, Camera, RotateCcw, ShieldCheck, Pencil } from "lucide-react";
+import { deleteGuest, updateGuestTrip } from "@/app/actions/delete";
 
 type Guest = {
   id: string;
@@ -63,10 +63,40 @@ function getMedicalDetails(guest: Guest): string[] {
     .filter(Boolean) as string[];
 }
 
-export default function GuestTable({ guests }: { guests: Guest[] }) {
+function tripLabel(date: string | null, time: string | null) {
+  const d = date
+    ? new Date(date + "T12:00:00").toLocaleDateString("en-GB", {
+        weekday: "short", day: "numeric", month: "short",
+      })
+    : "No trip date set";
+  return time ? `${d} · ${time}` : d;
+}
+
+/** Group the list by trip (date + time) so staff can check each trip's headcount. */
+function groupByTrip(guests: Guest[]) {
+  const groups: { key: string; label: string; guests: Guest[] }[] = [];
+  for (const g of guests) {
+    const key = `${g.trip_date ?? ""}|${g.trip_time ?? ""}`;
+    const existing = groups.find((x) => x.key === key);
+    if (existing) existing.guests.push(g);
+    else groups.push({ key, label: tripLabel(g.trip_date, g.trip_time), guests: [g] });
+  }
+  return groups;
+}
+
+export default function GuestTable({ guests, timeOptions = [] }: { guests: Guest[]; timeOptions?: string[] }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<string | null>(null);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editTime, setEditTime] = useState("");
   const [pending, startTransition] = useTransition();
+
+  function startEditing(g: Guest) {
+    setEditing(g.id);
+    setEditDate(g.trip_date ?? "");
+    setEditTime(g.trip_time ?? "");
+  }
 
   if (guests.length === 0) {
     return (
@@ -76,9 +106,25 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
     );
   }
 
+  const tripGroups = groupByTrip(guests);
+
   return (
     <div className="space-y-2">
-      {guests.map((g) => {
+      {/* Known departure times, offered as suggestions when correcting a guest's trip */}
+      <datalist id="wavr-trip-times">
+        {timeOptions.map((t) => <option key={t} value={t} />)}
+      </datalist>
+      {tripGroups.map((group) => (
+        <div key={group.key} className="space-y-2 pt-1">
+          {/* Trip heading + headcount — the quick "did everyone sign the right slot?" check */}
+          {/* Sticky so the trip and its headcount stay visible while scrolling a long list */}
+          <div className="sticky top-0 z-10 flex items-center justify-between gap-3 -mx-1 px-2 py-2 bg-zinc-900/95 backdrop-blur-sm rounded-lg">
+            <h2 className="text-sm font-semibold text-white truncate">{group.label}</h2>
+            <span className="shrink-0 text-xs font-bold bg-brand/15 text-brand-light px-2.5 py-1 rounded-full">
+              {group.guests.length} {group.guests.length === 1 ? "guest" : "guests"}
+            </span>
+          </div>
+          {group.guests.map((g) => {
         const isExpanded = expanded === g.id;
         const flagged = hasMedicalFlag(g);
         const medicalDetails = getMedicalDetails(g);
@@ -132,15 +178,15 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                 )}
               </div>
 
-              {/* Date + chevron */}
-              <div className="shrink-0 flex flex-col items-end gap-0.5">
-                <div className="flex items-center gap-1 text-xs text-zinc-400">
-                  {g.trip_date
-                    ? new Date(g.trip_date + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" })
-                    : new Date(g.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                  {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </div>
-                {g.trip_time && <span className="text-[10px] text-brand-light">{g.trip_time}</span>}
+              {/* The trip is already in the group heading above, so just the toggle here.
+                  Guests with no trip date show when they signed instead. */}
+              <div className="shrink-0 flex items-center gap-1 text-xs text-zinc-400">
+                {!g.trip_date && (
+                  <span className="text-zinc-500">
+                    signed {new Date(g.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                  </span>
+                )}
+                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
               </div>
             </button>
 
@@ -161,21 +207,75 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
                   </div>
                 )}
 
-                {/* Trip info */}
-                {(g.trip_date || g.trip_time) && (
-                  <div className="flex items-center gap-3 bg-zinc-700/30 rounded-lg px-3 py-2">
-                    {g.trip_date && (
-                      <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                        <Calendar size={12} className="text-brand-light" />
-                        {new Date(g.trip_date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
-                      </div>
-                    )}
+                {/* Trip info — editable, so a guest who picked the wrong slot can be moved */}
+                {editing === g.id ? (
+                  <div className="bg-zinc-700/30 rounded-lg px-3 py-3 space-y-2.5">
+                    <p className="text-xs font-semibold text-zinc-300">Move this guest to another trip</p>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <label className="flex-1">
+                        <span className="block text-[11px] text-zinc-500 mb-1">Trip date</span>
+                        <input
+                          type="date"
+                          value={editDate}
+                          onChange={(e) => setEditDate(e.target.value)}
+                          style={{ colorScheme: "dark" }}
+                          className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+                        />
+                      </label>
+                      <label className="flex-1">
+                        <span className="block text-[11px] text-zinc-500 mb-1">Departure time</span>
+                        <input
+                          type="text"
+                          list="wavr-trip-times"
+                          value={editTime}
+                          placeholder="e.g. 10am (leave blank for none)"
+                          onChange={(e) => setEditTime(e.target.value)}
+                          className="w-full px-3 py-2.5 rounded-lg bg-zinc-900 border border-zinc-700 text-white text-sm placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-brand"
+                        />
+                      </label>
+                    </div>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      <button
+                        onClick={() =>
+                          startTransition(async () => {
+                            await updateGuestTrip(g.id, editDate || null, editTime.trim() || null);
+                            setEditing(null);
+                          })
+                        }
+                        disabled={pending}
+                        className="px-3 py-2 rounded-lg bg-brand hover:bg-brand-light text-white text-xs font-semibold transition disabled:opacity-50"
+                      >
+                        {pending ? "Saving…" : "Save trip"}
+                      </button>
+                      <button
+                        onClick={() => setEditing(null)}
+                        className="px-3 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white text-xs transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 flex-wrap bg-zinc-700/30 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-1.5 text-xs text-zinc-300">
+                      <Calendar size={12} className="text-brand-light" />
+                      {g.trip_date
+                        ? new Date(g.trip_date + "T12:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })
+                        : <span className="text-zinc-500">No trip date</span>}
+                    </div>
                     {g.trip_time && (
                       <div className="flex items-center gap-1.5 text-xs text-zinc-300">
                         <Clock size={12} className="text-brand-light" />
                         {g.trip_time}
                       </div>
                     )}
+                    <button
+                      onClick={() => startEditing(g)}
+                      className="ml-auto flex items-center gap-1.5 text-xs text-brand-light hover:text-white transition"
+                    >
+                      <Pencil size={12} />
+                      Change
+                    </button>
                   </div>
                 )}
 
@@ -260,8 +360,10 @@ export default function GuestTable({ guests }: { guests: Guest[] }) {
               </div>
             )}
           </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }

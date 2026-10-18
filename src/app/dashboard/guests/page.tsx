@@ -74,7 +74,7 @@ export default async function GuestsPage({
       </div>
 
       <GuestFilterBar totalCount={guests?.length ?? 0} timeOptions={timeOptions} waiverOptions={waiverOptions} offersPhotos={offersPhotos} timezone={timezone} />
-      <GuestTable guests={guests ?? []} />
+      <GuestTable guests={guests ?? []} timeOptions={timeOptions} />
     </div>
   );
 }
